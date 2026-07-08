@@ -1,13 +1,146 @@
 <?php
 // app/models/Nikahnama.php
 
-require_once __DIR__ . '/../config/database.php';
-
 class Nikahnama {
-    private $db;
+    private $projectId = 'nikahnama-181b3';
+    private $baseUrl;
 
     public function __construct() {
-        $this->db = Database::connect();
+        $this->baseUrl = "https://firestore.googleapis.com/v1/projects/" . $this->projectId . "/databases/(default)/documents";
+        
+        // Auto-seed default users if they are not in the cloud yet
+        $this->seedUsersIfEmpty();
+    }
+
+    /**
+     * cURL REST Client Helper
+     */
+    private function request($path, $method = 'GET', $data = null) {
+        $url = $this->baseUrl . $path;
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Prevent SSL issues in local environments
+        
+        if ($data !== null) {
+            $json = json_encode($data);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($json)
+            ]);
+        }
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode >= 400) {
+            return null;
+        }
+        
+        return json_decode($response, true);
+    }
+
+    /**
+     * Map Firestore Document format to standard PHP array
+     */
+    public function flattenDocument($doc) {
+        if (!$doc || !isset($doc['fields'])) {
+            return null;
+        }
+        
+        $fields = $doc['fields'];
+        $data = [];
+        
+        // Parse document ID from Firestore resource name path
+        $parts = explode('/', $doc['name']);
+        $data['id'] = end($parts);
+        
+        foreach ($fields as $key => $val) {
+            if (isset($val['stringValue'])) {
+                $data[$key] = $val['stringValue'];
+            } elseif (isset($val['integerValue'])) {
+                $data[$key] = intval($val['integerValue']);
+            } elseif (isset($val['doubleValue'])) {
+                $data[$key] = floatval($val['doubleValue']);
+            } elseif (isset($val['booleanValue'])) {
+                $data[$key] = (bool)$val['booleanValue'];
+            } else {
+                $data[$key] = null;
+            }
+        }
+        
+        $data['created_at'] = isset($doc['createTime']) ? date('Y-m-d H:i:s', strtotime($doc['createTime'])) : date('Y-m-d H:i:s');
+        $data['updated_at'] = isset($doc['updateTime']) ? date('Y-m-d H:i:s', strtotime($doc['updateTime'])) : date('Y-m-d H:i:s');
+        
+        return $data;
+    }
+
+    /**
+     * Map standard PHP array to Firestore request payload
+     */
+    private function toFirestorePayload($data) {
+        $fields = [];
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                $fields[$key] = ['nullValue' => null];
+            } elseif (is_bool($value)) {
+                $fields[$key] = ['booleanValue' => $value];
+            } elseif (is_int($value)) {
+                $fields[$key] = ['integerValue' => strval($value)];
+            } elseif (is_float($value) || is_numeric($value)) {
+                $fields[$key] = ['doubleValue' => floatval($value)];
+            } else {
+                $fields[$key] = ['stringValue' => strval($value)];
+            }
+        }
+        return ['fields' => $fields];
+    }
+
+    /**
+     * Auto-seed default users in cloud Firestore if empty
+     */
+    private function seedUsersIfEmpty() {
+        $res = $this->request('/users');
+        if (!$res || !isset($res['documents']) || empty($res['documents'])) {
+            $users = [
+                [
+                    'username' => 'admin',
+                    'password' => '$2y$10$IriuGDloH/z1dmimyy0xV.sBsM/7I7JMI1d2ZlOI.7/1fsjo11aJW',
+                    'fullname' => 'Administrator',
+                    'role' => 'admin'
+                ],
+                [
+                    'username' => 'sourav.sanya.dev@gmail.com',
+                    'password' => '$2y$10$jHUm2r89uS8tc.EL.ICeKOKGAHNxevQzkfmkBoPCZ1wsYtQg/v4py',
+                    'fullname' => 'Sourav Dev',
+                    'role' => 'admin'
+                ]
+            ];
+            
+            foreach ($users as $user) {
+                $payload = $this->toFirestorePayload($user);
+                $this->request('/users', 'POST', $payload);
+            }
+        }
+    }
+
+    /**
+     * Fetch user record by username
+     */
+    public function getUserByUsername($username) {
+        $res = $this->request('/users?pageSize=100');
+        if ($res && isset($res['documents'])) {
+            foreach ($res['documents'] as $doc) {
+                $user = $this->flattenDocument($doc);
+                if (strcasecmp($user['username'], $username) === 0) {
+                    return $user;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -15,21 +148,20 @@ class Nikahnama {
      */
     public function generateCertificateNo() {
         $prefix = 'NIK-' . date('Ymd') . '-';
+        $today = date('Y-m-d');
         
-        // Find how many certificates are created today
-        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM nikahnama WHERE DATE(created_at) = CURRENT_DATE()");
-        $stmt->execute();
-        $row = $stmt->fetch();
-        $next_num = str_pad($row['count'] + 1, 4, '0', STR_PAD_LEFT);
+        $docs = $this->getAll();
+        $count = 0;
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 10) === $today) {
+                $count++;
+            }
+        }
         
+        $next_num = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
         $cert_no = $prefix . $next_num;
         
-        // Double check uniqueness
-        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM nikahnama WHERE certificate_no = ?");
-        $stmt->execute([$cert_no]);
-        $check = $stmt->fetch();
-        if ($check['count'] > 0) {
-            // If exists, append unique time suffix
+        if ($this->getByCertificateNo($cert_no) !== null) {
             $cert_no = $prefix . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
         }
         
@@ -41,19 +173,28 @@ class Nikahnama {
      */
     public function generateRegistrationNo() {
         $prefix = 'REG-' . date('Ymd') . '-';
+        $today = date('Y-m-d');
         
-        // Find count
-        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM nikahnama WHERE DATE(created_at) = CURRENT_DATE()");
-        $stmt->execute();
-        $row = $stmt->fetch();
-        $next_num = str_pad($row['count'] + 1, 4, '0', STR_PAD_LEFT);
+        $docs = $this->getAll();
+        $count = 0;
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 10) === $today) {
+                $count++;
+            }
+        }
         
+        $next_num = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
         $reg_no = $prefix . $next_num;
         
-        $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM nikahnama WHERE registration_no = ?");
-        $stmt->execute([$reg_no]);
-        $check = $stmt->fetch();
-        if ($check['count'] > 0) {
+        // Verify uniqueness
+        $exists = false;
+        foreach ($docs as $doc) {
+            if (strcasecmp($doc['registration_no'], $reg_no) === 0) {
+                $exists = true;
+                break;
+            }
+        }
+        if ($exists) {
             $reg_no = $prefix . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
         }
         
@@ -64,65 +205,11 @@ class Nikahnama {
      * Insert a new Nikahnama record
      */
     public function create($data) {
-        $sql = "INSERT INTO nikahnama (
-            certificate_no, registration_no, marriage_date, marriage_time, marriage_place,
-            mahr_amount, currency, mahr_status,
-            bride_name, bride_father, bride_mother, bride_birth, bride_nid, bride_passport, bride_phone, bride_address,
-            groom_name, groom_father, groom_mother, groom_birth, groom_nid, groom_passport, groom_phone, groom_address,
-            wali_name, registrar_name, registrar_license, registrar_phone, registrar_address,
-            witness1_name, witness1_nid, witness2_name, witness2_nid, notes, qr_code
-        ) VALUES (
-            :certificate_no, :registration_no, :marriage_date, :marriage_time, :marriage_place,
-            :mahr_amount, :currency, :mahr_status,
-            :bride_name, :bride_father, :bride_mother, :bride_birth, :bride_nid, :bride_passport, :bride_phone, :bride_address,
-            :groom_name, :groom_father, :groom_mother, :groom_birth, :groom_nid, :groom_passport, :groom_phone, :groom_address,
-            :wali_name, :registrar_name, :registrar_license, :registrar_phone, :registrar_address,
-            :witness1_name, :witness1_nid, :witness2_name, :witness2_nid, :notes, :qr_code
-        )";
-
-        $stmt = $this->db->prepare($sql);
-        
-        // Execute with mapped parameters
-        $result = $stmt->execute([
-            ':certificate_no' => $data['certificate_no'],
-            ':registration_no' => $data['registration_no'],
-            ':marriage_date' => $data['marriage_date'],
-            ':marriage_time' => $data['marriage_time'],
-            ':marriage_place' => $data['marriage_place'],
-            ':mahr_amount' => $data['mahr_amount'],
-            ':currency' => $data['currency'] ?? 'BDT',
-            ':mahr_status' => $data['mahr_status'],
-            ':bride_name' => $data['bride_name'],
-            ':bride_father' => $data['bride_father'],
-            ':bride_mother' => $data['bride_mother'],
-            ':bride_birth' => $data['bride_birth'],
-            ':bride_nid' => !empty($data['bride_nid']) ? $data['bride_nid'] : null,
-            ':bride_passport' => !empty($data['bride_passport']) ? $data['bride_passport'] : null,
-            ':bride_phone' => $data['bride_phone'],
-            ':bride_address' => $data['bride_address'],
-            ':groom_name' => $data['groom_name'],
-            ':groom_father' => $data['groom_father'],
-            ':groom_mother' => $data['groom_mother'],
-            ':groom_birth' => $data['groom_birth'],
-            ':groom_nid' => !empty($data['groom_nid']) ? $data['groom_nid'] : null,
-            ':groom_passport' => !empty($data['groom_passport']) ? $data['groom_passport'] : null,
-            ':groom_phone' => $data['groom_phone'],
-            ':groom_address' => $data['groom_address'],
-            ':wali_name' => !empty($data['wali_name']) ? $data['wali_name'] : null,
-            ':registrar_name' => $data['registrar_name'],
-            ':registrar_license' => $data['registrar_license'],
-            ':registrar_phone' => $data['registrar_phone'],
-            ':registrar_address' => $data['registrar_address'],
-            ':witness1_name' => $data['witness1_name'],
-            ':witness1_nid' => $data['witness1_nid'],
-            ':witness2_name' => $data['witness2_name'],
-            ':witness2_nid' => $data['witness2_nid'],
-            ':notes' => !empty($data['notes']) ? $data['notes'] : null,
-            ':qr_code' => $data['qr_code'] ?? null
-        ]);
-
-        if ($result) {
-            return $this->db->lastInsertId();
+        $payload = $this->toFirestorePayload($data);
+        $res = $this->request('/nikahnama', 'POST', $payload);
+        if ($res && isset($res['name'])) {
+            $flat = $this->flattenDocument($res);
+            return $flat['id'] ?? true;
         }
         return false;
     }
@@ -131,178 +218,148 @@ class Nikahnama {
      * Update an existing Nikahnama record
      */
     public function update($id, $data) {
-        $sql = "UPDATE nikahnama SET 
-            marriage_date = :marriage_date,
-            marriage_time = :marriage_time,
-            marriage_place = :marriage_place,
-            mahr_amount = :mahr_amount,
-            currency = :currency,
-            mahr_status = :mahr_status,
-            bride_name = :bride_name,
-            bride_father = :bride_father,
-            bride_mother = :bride_mother,
-            bride_birth = :bride_birth,
-            bride_nid = :bride_nid,
-            bride_passport = :bride_passport,
-            bride_phone = :bride_phone,
-            bride_address = :bride_address,
-            groom_name = :groom_name,
-            groom_father = :groom_father,
-            groom_mother = :groom_mother,
-            groom_birth = :groom_birth,
-            groom_nid = :groom_nid,
-            groom_passport = :groom_passport,
-            groom_phone = :groom_phone,
-            groom_address = :groom_address,
-            wali_name = :wali_name,
-            registrar_name = :registrar_name,
-            registrar_license = :registrar_license,
-            registrar_phone = :registrar_phone,
-            registrar_address = :registrar_address,
-            witness1_name = :witness1_name,
-            witness1_nid = :witness1_nid,
-            witness2_name = :witness2_name,
-            witness2_nid = :witness2_nid,
-            notes = :notes
-            WHERE id = :id";
-
-        $stmt = $this->db->prepare($sql);
+        $payload = $this->toFirestorePayload($data);
         
-        return $stmt->execute([
-            ':id' => $id,
-            ':marriage_date' => $data['marriage_date'],
-            ':marriage_time' => $data['marriage_time'],
-            ':marriage_place' => $data['marriage_place'],
-            ':mahr_amount' => $data['mahr_amount'],
-            ':currency' => $data['currency'] ?? 'BDT',
-            ':mahr_status' => $data['mahr_status'],
-            ':bride_name' => $data['bride_name'],
-            ':bride_father' => $data['bride_father'],
-            ':bride_mother' => $data['bride_mother'],
-            ':bride_birth' => $data['bride_birth'],
-            ':bride_nid' => !empty($data['bride_nid']) ? $data['bride_nid'] : null,
-            ':bride_passport' => !empty($data['bride_passport']) ? $data['bride_passport'] : null,
-            ':bride_phone' => $data['bride_phone'],
-            ':bride_address' => $data['bride_address'],
-            ':groom_name' => $data['groom_name'],
-            ':groom_father' => $data['groom_father'],
-            ':groom_mother' => $data['groom_mother'],
-            ':groom_birth' => $data['groom_birth'],
-            ':groom_nid' => !empty($data['groom_nid']) ? $data['groom_nid'] : null,
-            ':groom_passport' => !empty($data['groom_passport']) ? $data['groom_passport'] : null,
-            ':groom_phone' => $data['groom_phone'],
-            ':groom_address' => $data['groom_address'],
-            ':wali_name' => !empty($data['wali_name']) ? $data['wali_name'] : null,
-            ':registrar_name' => $data['registrar_name'],
-            ':registrar_license' => $data['registrar_license'],
-            ':registrar_phone' => $data['registrar_phone'],
-            ':registrar_address' => $data['registrar_address'],
-            ':witness1_name' => $data['witness1_name'],
-            ':witness1_nid' => $data['witness1_nid'],
-            ':witness2_name' => $data['witness2_name'],
-            ':witness2_nid' => $data['witness2_nid'],
-            ':notes' => !empty($data['notes']) ? $data['notes'] : null
-        ]);
+        // Build patch query parameters to instruct Firestore which fields to write
+        $queryParams = [];
+        foreach ($data as $key => $val) {
+            $queryParams[] = 'updateMask.fieldPaths=' . urlencode($key);
+        }
+        $queryString = '?' . implode('&', $queryParams);
+        
+        $res = $this->request('/nikahnama/' . $id . $queryString, 'PATCH', $payload);
+        return $res !== null;
     }
 
     /**
      * Delete a Nikahnama record
      */
     public function delete($id) {
-        $stmt = $this->db->prepare("DELETE FROM nikahnama WHERE id = ?");
-        return $stmt->execute([$id]);
+        $res = $this->request('/nikahnama/' . $id, 'DELETE');
+        return $res !== null;
     }
 
     /**
      * Get record by database ID
      */
     public function getById($id) {
-        $stmt = $this->db->prepare("SELECT * FROM nikahnama WHERE id = ?");
-        $stmt->execute([$id]);
-        return $stmt->fetch();
+        $res = $this->request('/nikahnama/' . $id);
+        if ($res) {
+            return $this->flattenDocument($res);
+        }
+        return null;
     }
 
     /**
      * Get record by Certificate Number (for verification/search)
      */
     public function getByCertificateNo($certNo) {
-        $stmt = $this->db->prepare("SELECT * FROM nikahnama WHERE certificate_no = ?");
-        $stmt->execute([$certNo]);
-        return $stmt->fetch();
+        $docs = $this->getAll();
+        foreach ($docs as $doc) {
+            if (strcasecmp($doc['certificate_no'], $certNo) === 0) {
+                return $doc;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get all certificates from collection
+     */
+    public function getAll() {
+        $res = $this->request('/nikahnama?pageSize=300'); // Higher page limit to return all
+        $documents = [];
+        if ($res && isset($res['documents'])) {
+            foreach ($res['documents'] as $doc) {
+                $flat = $this->flattenDocument($doc);
+                if ($flat) {
+                    $documents[] = $flat;
+                }
+            }
+        }
+        return $documents;
     }
 
     /**
      * Search certificates with filters
      */
     public function search($query_str) {
+        $docs = $this->getAll();
         if (empty($query_str)) {
-            $stmt = $this->db->prepare("SELECT * FROM nikahnama ORDER BY id DESC LIMIT 50");
-            $stmt->execute();
-            return $stmt->fetchAll();
+            usort($docs, function($a, $b) {
+                return strcmp($b['created_at'], $a['created_at']);
+            });
+            return array_slice($docs, 0, 50);
         }
 
-        $term = '%' . $query_str . '%';
-        $sql = "SELECT * FROM nikahnama WHERE 
-            certificate_no LIKE :term OR 
-            registration_no LIKE :term OR 
-            bride_name LIKE :term OR 
-            groom_name LIKE :term OR 
-            bride_nid LIKE :term OR 
-            groom_nid LIKE :term OR 
-            bride_phone LIKE :term OR 
-            groom_phone LIKE :term OR 
-            marriage_date LIKE :term
-            ORDER BY id DESC";
-            
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':term' => $term]);
-        return $stmt->fetchAll();
+        $results = [];
+        $query_str = strtolower(trim($query_str));
+        
+        foreach ($docs as $doc) {
+            $match = false;
+            foreach (['certificate_no', 'registration_no', 'bride_name', 'groom_name', 'bride_nid', 'groom_nid', 'bride_phone', 'groom_phone', 'marriage_date'] as $field) {
+                if (isset($doc[$field]) && stripos(strtolower($doc[$field]), $query_str) !== false) {
+                    $match = true;
+                    break;
+                }
+            }
+            if ($match) {
+                $results[] = $doc;
+            }
+        }
+        
+        usort($results, function($a, $b) {
+            return strcmp($b['created_at'], $a['created_at']);
+        });
+        
+        return $results;
     }
 
     /**
      * Count Total Certificates
      */
     public function countAll() {
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM nikahnama");
-        $stmt->execute();
-        $row = $stmt->fetch();
-        return $row['total'] ?? 0;
+        return count($this->getAll());
     }
 
     /**
      * Count Certificates registered today
      */
     public function countToday() {
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM nikahnama WHERE DATE(created_at) = CURRENT_DATE()");
-        $stmt->execute();
-        $row = $stmt->fetch();
-        return $row['total'] ?? 0;
+        $docs = $this->getAll();
+        $count = 0;
+        $today = date('Y-m-d');
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 10) === $today) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**
      * Count Certificates registered this month
      */
     public function countThisMonth() {
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM nikahnama WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())");
-        $stmt->execute();
-        $row = $stmt->fetch();
-        return $row['total'] ?? 0;
+        $docs = $this->getAll();
+        $count = 0;
+        $month = date('Y-m');
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 7) === $month) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /**
      * Get Recent Certificates
      */
     public function getRecent($limit = 5) {
-        $stmt = $this->db->prepare("SELECT * FROM nikahnama ORDER BY id DESC LIMIT " . intval($limit));
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * Update QR Code reference
-     */
-    public function updateQrCode($id, $qr_code) {
-        $stmt = $this->db->prepare("UPDATE nikahnama SET qr_code = ? WHERE id = ?");
-        return $stmt->execute([$qr_code, $id]);
+        $docs = $this->getAll();
+        usort($docs, function($a, $b) {
+            return strcmp($b['created_at'], $a['created_at']);
+        });
+        return array_slice($docs, 0, $limit);
     }
 }
