@@ -16,7 +16,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
     exit;
 }
 
-$id = intval($_GET['id']);
+$id = sanitize($_GET['id']);
 $cert = $controller->show($id); // This will redirect if not found
 
 // Process form update submission

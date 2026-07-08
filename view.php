@@ -16,7 +16,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
     exit;
 }
 
-$id = intval($_GET['id']);
+$id = sanitize($_GET['id']);
 
 // Handle deletion request (POST to prevent CSRF / accidental deletes)
 if (isset($_POST['action']) && $_POST['action'] === 'delete') {

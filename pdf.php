@@ -13,7 +13,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
     die("No certificate ID provided.");
 }
 
-$id = intval($_GET['id']);
+$id = sanitize($_GET['id']);
 $cert = $controller->show($id); // Redirects to dashboard if not found
 ?>
 <!DOCTYPE html>
