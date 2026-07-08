@@ -68,17 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     .then(data => {
                         let html = '';
                         if (data.length === 0) {
-                            html = `<tr><td colspan="7" class="text-center py-4 text-muted">No certificates match your query.</td></tr>`;
+                            html = `<tr><td colspan="7" class="text-center py-4 text-muted">আপনার অনুসন্ধানের সাথে মেলে এমন কোনো রেকর্ড পাওয়া যায়নি।</td></tr>`;
                         } else {
                             data.forEach(item => {
                                 let badgeClass = 'badge-paid';
-                                let statusText = 'Paid';
+                                let statusText = 'পরিশোধিত';
                                 if (item.mahr_status === 'due') {
                                     badgeClass = 'badge-due';
-                                    statusText = 'Due';
+                                    statusText = 'বকেয়া';
                                 } else if (item.mahr_status === 'partially_paid') {
                                     badgeClass = 'badge-partial';
-                                    statusText = 'Partial';
+                                    statusText = 'আংশিক';
                                 }
 
                                 html += `
@@ -91,9 +91,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <td><span class="badge ${badgeClass}">${statusText}</span></td>
                                     <td class="text-end">
                                         <div class="btn-group">
-                                            <a href="view.php?id=${item.id}" class="btn btn-sm btn-outline-secondary">View</a>
-                                            <a href="edit.php?id=${item.id}" class="btn btn-sm btn-outline-warning">Edit</a>
-                                            <a href="print.php?id=${item.id}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a>
+                                            <a href="view.php?id=${item.id}" class="btn btn-sm btn-outline-secondary">দেখুন</a>
+                                            <a href="edit.php?id=${item.id}" class="btn btn-sm btn-outline-warning">সম্পাদনা</a>
+                                            <a href="print.php?id=${item.id}" target="_blank" class="btn btn-sm btn-outline-primary">প্রিন্ট</a>
                                         </div>
                                     </td>
                                 </tr>`;

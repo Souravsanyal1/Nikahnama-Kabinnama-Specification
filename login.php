@@ -22,16 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error_msg = flash('error');
         }
     } else {
-        $error_msg = 'CSRF verification failed.';
+        $error_msg = 'CSRF ভেরিফিকেশন ব্যর্থ হয়েছে।';
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Officer Login - Nikahnama Management System</title>
+    <title>কর্মকর্তা লগইন - ডিজিটাল নিকাহনামা রেজিস্ট্রি</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -47,8 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
-                    <h2><i class="fa-solid fa-mosque me-2"></i>NIKAH<span>NAMA</span></h2>
-                    <p class="mb-0 text-light opacity-75 small">Officer Authentication Portal</p>
+                    <h2><i class="fa-solid fa-mosque me-2"></i>নিকাহ<span>নামা</span></h2>
+                    <p class="mb-0 text-light opacity-75 small">কর্মকর্তা লগইন পোর্টাল</p>
                 </div>
                 <div class="card-body p-4 bg-white">
                     <?php if (!empty($error_msg)): ?>
@@ -63,18 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                         
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
+                            <label for="username" class="form-label text-dark fw-bold">ইউজারনেম (ইমেইল)</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa-solid fa-user text-muted"></i></span>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required autofocus>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="ইমেইল এড্রেস লিখুন" required autofocus>
                             </div>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label text-dark fw-bold">পাসওয়ার্ড</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa-solid fa-lock text-muted"></i></span>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="পাসওয়ার্ড লিখুন" required>
                                 <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-color: #E2E8F0; color: #6C757D;">
                                     <i class="fa-solid fa-eye" id="toggleIcon"></i>
                                 </button>
@@ -82,12 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <button type="submit" class="btn btn-primary-custom w-100 py-2.5">
-                            <i class="fa-solid fa-right-to-bracket me-2"></i>Authenticate
+                            <i class="fa-solid fa-right-to-bracket me-2"></i>লগইন করুন
                         </button>
                         
                         <div class="text-center mt-4">
                             <a href="index.php" class="text-muted text-decoration-none small">
-                                <i class="fa-solid fa-arrow-left me-1"></i> Back to Public Page
+                                <i class="fa-solid fa-arrow-left me-1"></i> প্রধান পাতায় ফিরে যান
                             </a>
                         </div>
                     </form>

@@ -22,11 +22,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'search') {
 $stats = $controller->getDashboardStats();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Nikahnama Management System</title>
+    <title>ড্যাশবোর্ড - ডিজিটাল নিকাহনামা রেজিস্ট্রি</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome for Icons -->
@@ -42,7 +42,7 @@ $stats = $controller->getDashboardStats();
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
             <a class="navbar-brand" href="dashboard.php">
-                <i class="fa-solid fa-mosque me-2"></i>NIKAH<span>NAMA</span>
+                <i class="fa-solid fa-mosque me-2"></i>নিকাহ<span>নামা</span>
             </a>
             <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -50,19 +50,19 @@ $stats = $controller->getDashboardStats();
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link active" href="dashboard.php"><i class="fa-solid fa-gauge me-1"></i> Dashboard</a>
+                        <a class="nav-link active" href="dashboard.php"><i class="fa-solid fa-gauge me-1"></i> ড্যাশবোর্ড</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="create.php"><i class="fa-solid fa-circle-plus me-1"></i> Create Nikah</a>
+                        <a class="nav-link" href="create.php"><i class="fa-solid fa-circle-plus me-1"></i> নতুন নিবন্ধন</a>
                     </li>
                     <li class="nav-item me-3">
                         <span class="navbar-text text-light opacity-75 ms-2">
-                            <i class="fa-solid fa-user me-1 text-warning"></i> <?php echo sanitize($_SESSION['fullname']); ?> (<?php echo strtoupper($_SESSION['role']); ?>)
+                            <i class="fa-solid fa-user me-1 text-warning"></i> কর্মকর্তা: <?php echo sanitize($_SESSION['fullname']); ?>
                         </span>
                     </li>
                     <li class="nav-item">
                         <a href="logout.php" class="btn btn-sm btn-outline-danger">
-                            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> লগআউট
                         </a>
                     </li>
                 </ul>
@@ -94,7 +94,7 @@ $stats = $controller->getDashboardStats();
                 <div class="stat-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted text-uppercase small fw-bold">Total Certificates</span>
+                            <span class="text-muted text-uppercase small fw-bold">মোট নিবন্ধন সংখ্যা</span>
                             <div class="stat-val"><?php echo $stats['total']; ?></div>
                         </div>
                         <div class="icon-wrapper">
@@ -108,7 +108,7 @@ $stats = $controller->getDashboardStats();
                 <div class="stat-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted text-uppercase small fw-bold">Today's Certificates</span>
+                            <span class="text-muted text-uppercase small fw-bold">আজকের নিবন্ধন</span>
                             <div class="stat-val text-warning"><?php echo $stats['today']; ?></div>
                         </div>
                         <div class="icon-wrapper text-warning">
@@ -122,7 +122,7 @@ $stats = $controller->getDashboardStats();
                 <div class="stat-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted text-uppercase small fw-bold">Monthly Certificates</span>
+                            <span class="text-muted text-uppercase small fw-bold">এই মাসের নিবন্ধন</span>
                             <div class="stat-val text-success"><?php echo $stats['month']; ?></div>
                         </div>
                         <div class="icon-wrapper text-success">
@@ -138,12 +138,12 @@ $stats = $controller->getDashboardStats();
             <div class="col-md-8">
                 <div class="input-group input-group-lg shadow-sm">
                     <span class="input-group-text bg-white border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" class="form-control border-0" id="dashboardSearch" placeholder="Search by Certificate No, Bride/Groom Name, Phone, Date, or NID...">
+                    <input type="text" class="form-control border-0" id="dashboardSearch" placeholder="সার্টিফিকেট নম্বর, বর/কনের নাম, মোবাইল নম্বর, NID অথবা তারিখ দিয়ে খুঁজুন...">
                 </div>
             </div>
             <div class="col-md-4 text-md-end">
                 <a href="create.php" class="btn btn-primary-custom w-100 py-3 shadow-sm">
-                    <i class="fa-solid fa-circle-plus me-2"></i>Create New Certificate
+                    <i class="fa-solid fa-circle-plus me-2"></i>নতুন নিকাহনামা তৈরি করুন
                 </a>
             </div>
         </div>
@@ -151,19 +151,19 @@ $stats = $controller->getDashboardStats();
         <!-- Recent Certificates Table -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="card-header bg-white py-3 border-0">
-                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left me-2 text-warning"></i>Recent Registrations</h5>
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left me-2 text-warning"></i>সাম্প্রতিক নিবন্ধনসমূহ</h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover table-custom mb-0">
                     <thead>
                         <tr>
-                            <th>Certificate No</th>
-                            <th>Groom Name</th>
-                            <th>Bride Name</th>
-                            <th>Marriage Date</th>
-                            <th>Mahr Amount</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th>সার্টিফিকেট নম্বর</th>
+                            <th>বরের নাম</th>
+                            <th>কনের নাম</th>
+                            <th>বিবাহের তারিখ</th>
+                            <th>দেনমোহর</th>
+                            <th>দেনমোহরের অবস্থা</th>
+                            <th class="text-end">অ্যাকশন</th>
                         </tr>
                     </thead>
                     <tbody id="searchResultsTable">
@@ -171,7 +171,7 @@ $stats = $controller->getDashboardStats();
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
-                                    <p class="mb-0">No records found. Click "Create New Certificate" to add your first registration.</p>
+                                    <p class="mb-0">কোনো নিবন্ধন পাওয়া যায়নি। শুরু করতে "নতুন নিকাহনামা তৈরি করুন" বোতামে ক্লিক করুন।</p>
                                 </td>
                             </tr>
                         <?php else: ?>
@@ -184,23 +184,23 @@ $stats = $controller->getDashboardStats();
                                     <td><?php echo sanitize($item['mahr_amount']) . ' ' . sanitize($item['currency']); ?></td>
                                     <td>
                                         <?php if ($item['mahr_status'] === 'paid'): ?>
-                                            <span class="badge badge-paid">Paid</span>
+                                            <span class="badge badge-paid">পরিশোধিত</span>
                                         <?php elseif ($item['mahr_status'] === 'due'): ?>
-                                            <span class="badge badge-due">Due</span>
+                                            <span class="badge badge-due">বকেয়া</span>
                                         <?php else: ?>
-                                            <span class="badge badge-partial">Partial</span>
+                                            <span class="badge badge-partial">আংশিক</span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
                                         <div class="btn-group">
                                             <a href="view.php?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-secondary">
-                                                <i class="fa-solid fa-eye me-1"></i>View
+                                                <i class="fa-solid fa-eye me-1"></i>দেখুন
                                             </a>
                                             <a href="edit.php?id=<?php echo $item['id']; ?>" class="btn btn-sm btn-outline-warning">
-                                                <i class="fa-solid fa-pen me-1"></i>Edit
+                                                <i class="fa-solid fa-pen me-1"></i>সম্পাদনা
                                             </a>
                                             <a href="print.php?id=<?php echo $item['id']; ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                <i class="fa-solid fa-print me-1"></i>Print
+                                                <i class="fa-solid fa-print me-1"></i>প্রিন্ট
                                             </a>
                                         </div>
                                     </td>
@@ -217,8 +217,8 @@ $stats = $controller->getDashboardStats();
     <!-- Footer -->
     <footer>
         <div class="container text-center">
-            <p class="mb-1">&copy; <?php echo date('Y'); ?> Nikahnama Registry System. All Rights Reserved.</p>
-            <p class="small text-muted mb-0">System Version 2.0.0 | Powered by PHP, PDO & Material 3 Principles</p>
+            <p class="mb-1">&copy; <?php echo date('Y'); ?> ডিজিটাল নিকাহনামা রেজিস্ট্রি সিস্টেম। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p class="small text-muted mb-0">সিস্টেম সংস্করণ ২.০.০ | Firebase ক্লাউড দ্বারা চালিত</p>
         </div>
     </footer>
 

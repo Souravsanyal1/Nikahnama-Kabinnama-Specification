@@ -29,7 +29,7 @@ class NikahController {
     public function show($id) {
         $cert = $this->model->getById($id);
         if (!$cert) {
-            flash('error', 'Certificate not found.');
+            flash('error', 'সার্টিফিকেট পাওয়া যায়নি।');
             header("Location: dashboard.php");
             exit;
         }
@@ -46,7 +46,7 @@ class NikahController {
 
         // Validate CSRF
         if (!isset($_POST['csrf_token']) || !validate_csrf($_POST['csrf_token'])) {
-            flash('error', 'CSRF token validation failed.');
+            flash('error', 'CSRF ভেরিফিকেশন ব্যর্থ হয়েছে।');
             return;
         }
 
@@ -59,7 +59,7 @@ class NikahController {
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data'] = $_POST; // Preserve input
-            flash('error', 'Please correct the highlighted errors.');
+            flash('error', 'অনুগ্রহ করে লাল চিহ্নিত ত্রুটিগুলো সংশোধন করুন।');
             return;
         }
 
@@ -78,7 +78,7 @@ class NikahController {
         $insert_id = $this->model->create($data);
 
         if ($insert_id) {
-            flash('success', 'Nikahnama Certificate registered successfully.');
+            flash('success', 'নিকাহনামা সার্টিফিকেট সফলভাবে নিবন্ধিত হয়েছে।');
             // Clean dynamic form states
             unset($_SESSION['form_errors']);
             unset($_SESSION['form_data']);
@@ -86,9 +86,9 @@ class NikahController {
             exit;
         } else {
             $detail = flash('error_detail');
-            $msg = 'Failed to register Certificate. Please try again.';
+            $msg = 'সার্টিফিকেট নিবন্ধন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
             if ($detail) {
-                $msg .= ' Details: ' . $detail;
+                $msg .= ' কারণ: ' . $detail;
             }
             flash('error', $msg);
         }
@@ -104,7 +104,7 @@ class NikahController {
 
         // Validate CSRF
         if (!isset($_POST['csrf_token']) || !validate_csrf($_POST['csrf_token'])) {
-            flash('error', 'CSRF token validation failed.');
+            flash('error', 'CSRF ভেরিফিকেশন ব্যর্থ হয়েছে।');
             return;
         }
 
@@ -116,7 +116,7 @@ class NikahController {
 
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
-            flash('error', 'Please correct the highlighted errors.');
+            flash('error', 'অনুগ্রহ করে লাল চিহ্নিত ত্রুটিগুলো সংশোধন করুন।');
             return;
         }
 
@@ -124,15 +124,15 @@ class NikahController {
         $success = $this->model->update($id, $data);
 
         if ($success) {
-            flash('success', 'Nikahnama Certificate updated successfully.');
+            flash('success', 'নিকাহনামা সার্টিফিকেট সফলভাবে আপডেট করা হয়েছে।');
             unset($_SESSION['form_errors']);
             header("Location: view.php?id=" . $id);
             exit;
         } else {
             $detail = flash('error_detail');
-            $msg = 'Failed to update Certificate.';
+            $msg = 'সার্টিফিকেট আপডেট করতে ব্যর্থ হয়েছে।';
             if ($detail) {
-                $msg .= ' Details: ' . $detail;
+                $msg .= ' কারণ: ' . $detail;
             }
             flash('error', $msg);
         }
@@ -145,9 +145,9 @@ class NikahController {
         require_admin(); // Only admins can delete certificates
 
         if ($this->model->delete($id)) {
-            flash('success', 'Certificate deleted successfully.');
+            flash('success', 'সার্টিফিকেটটি সফলভাবে মুছে ফেলা হয়েছে।');
         } else {
-            flash('error', 'Failed to delete certificate.');
+            flash('error', 'সার্টিফিকেটটি মুছতে ব্যর্থ হয়েছে।');
         }
         header("Location: dashboard.php");
         exit;
@@ -163,7 +163,7 @@ class NikahController {
     /**
      * Public verification logic
      */
-    public function verify($certNo) {
+    public function handleVerify($certNo) {
         return $this->model->getByCertificateNo(trim($certNo));
     }
 
@@ -175,35 +175,35 @@ class NikahController {
 
         // Required field validations
         $required = [
-            'marriage_date' => 'Marriage date is required',
-            'marriage_time' => 'Marriage time is required',
-            'marriage_place' => 'Marriage venue is required',
-            'mahr_amount' => 'Mahr amount is required',
-            'mahr_status' => 'Mahr status selection is required',
+            'marriage_date' => 'বিবাহ সম্পন্ন হওয়ার তারিখ প্রদান করা আবশ্যক।',
+            'marriage_time' => 'বিবাহের সময় প্রদান করা আবশ্যক।',
+            'marriage_place' => 'বিবাহের স্থান / ভেন্যু প্রদান করা আবশ্যক।',
+            'mahr_amount' => 'দেনমোহরের পরিমাণ প্রদান করা আবশ্যক।',
+            'mahr_status' => 'দেনমোহর পরিশোধের অবস্থা নির্ধারণ করা আবশ্যক।',
             
-            'bride_name' => 'Bride name is required',
-            'bride_father' => 'Bride father name is required',
-            'bride_mother' => 'Bride mother name is required',
-            'bride_birth' => 'Bride date of birth is required',
-            'bride_phone' => 'Bride phone number is required',
-            'bride_address' => 'Bride address is required',
+            'bride_name' => 'কনের পূর্ণ নাম প্রদান করা আবশ্যক।',
+            'bride_father' => 'কনের পিতার নাম প্রদান করা আবশ্যক।',
+            'bride_mother' => 'কনের মাতার নাম প্রদান করা আবশ্যক।',
+            'bride_birth' => 'কনের জন্ম তারিখ প্রদান করা আবশ্যক।',
+            'bride_phone' => 'কনের মোবাইল নম্বর প্রদান করা আবশ্যক।',
+            'bride_address' => 'কনের পূর্ণ ঠিকানা প্রদান করা আবশ্যক।',
             
-            'groom_name' => 'Groom name is required',
-            'groom_father' => 'Groom father name is required',
-            'groom_mother' => 'Groom mother name is required',
-            'groom_birth' => 'Groom date of birth is required',
-            'groom_phone' => 'Groom phone number is required',
-            'groom_address' => 'Groom address is required',
+            'groom_name' => 'বরের পূর্ণ নাম প্রদান করা আবশ্যক।',
+            'groom_father' => 'বরের পিতার নাম প্রদান করা আবশ্যক।',
+            'groom_mother' => 'বরের মাতার নাম প্রদান করা আবশ্যক।',
+            'groom_birth' => 'বরের জন্ম তারিখ প্রদান করা আবশ্যক।',
+            'groom_phone' => 'বরের মোবাইল নম্বর প্রদান করা আবশ্যক।',
+            'groom_address' => 'বরের পূর্ণ ঠিকানা প্রদান করা আবশ্যক।',
             
-            'registrar_name' => 'Registrar name is required',
-            'registrar_license' => 'Registrar license number is required',
-            'registrar_phone' => 'Registrar phone number is required',
-            'registrar_address' => 'Registrar address is required',
+            'registrar_name' => 'কাজী (নিকাহ রেজিস্টার) এর পূর্ণ নাম প্রদান করা আবশ্যক।',
+            'registrar_license' => 'কাজী লাইসেন্স নম্বর প্রদান করা আবশ্যক।',
+            'registrar_phone' => 'কাজীর মোবাইল নম্বর প্রদান করা আবশ্যক।',
+            'registrar_address' => 'কাজীর কার্যালয়ের ঠিকানা প্রদান করা আবশ্যক।',
             
-            'witness1_name' => 'Witness 1 name is required',
-            'witness1_nid' => 'Witness 1 NID is required',
-            'witness2_name' => 'Witness 2 name is required',
-            'witness2_nid' => 'Witness 2 NID is required',
+            'witness1_name' => '১ম সাক্ষীর নাম প্রদান করা আবশ্যক।',
+            'witness1_nid' => '১ম সাক্ষীর NID নম্বর প্রদান করা আবশ্যক।',
+            'witness2_name' => '২য় সাক্ষীর নাম প্রদান করা আবশ্যক।',
+            'witness2_nid' => '২য় সাক্ষীর NID নম্বর প্রদান করা আবশ্যক।',
         ];
 
         foreach ($required as $field => $msg) {
@@ -214,18 +214,18 @@ class NikahController {
 
         // Validate dates
         if (!empty($data['marriage_date']) && !$this->isValidDate($data['marriage_date'])) {
-            $errors['marriage_date'] = 'Invalid marriage date format.';
+            $errors['marriage_date'] = 'অকার্যকর বিবাহের তারিখ বিন্যাস।';
         }
         if (!empty($data['bride_birth']) && !$this->isValidDate($data['bride_birth'])) {
-            $errors['bride_birth'] = 'Invalid bride birth date format.';
+            $errors['bride_birth'] = 'অকার্যকর কনের জন্ম তারিখ বিন্যাস।';
         }
         if (!empty($data['groom_birth']) && !$this->isValidDate($data['groom_birth'])) {
-            $errors['groom_birth'] = 'Invalid groom birth date format.';
+            $errors['groom_birth'] = 'অকার্যকর বরের জন্ম তারিখ বিন্যাস।';
         }
 
         // Validate numbers
         if (!empty($data['mahr_amount']) && !is_numeric($data['mahr_amount'])) {
-            $errors['mahr_amount'] = 'Mahr amount must be a number.';
+            $errors['mahr_amount'] = 'দেনমোহরের পরিমাণ অবশ্যই একটি সঠিক সংখ্যা হতে হবে।';
         }
 
         return $errors;
