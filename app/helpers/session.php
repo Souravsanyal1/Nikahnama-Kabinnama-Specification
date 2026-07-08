@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     // Configure session cookie options for extra security
     session_start([
         'cookie_httponly' => true,
-        'cookie_use_only_cookies' => true,
+        'use_only_cookies' => true,
         'cookie_samesite' => 'Lax'
     ]);
 }
