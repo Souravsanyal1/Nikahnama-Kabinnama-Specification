@@ -30,6 +30,8 @@ unset($_SESSION['form_data']);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Firebase SDK Integration -->
+    <script type="module" src="assets/js/firebase-init.js"></script>
 </head>
 <body class="bg-light">
 
