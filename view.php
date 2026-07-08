@@ -378,7 +378,7 @@ $cert = $controller->show($id); // Redirects to dashboard if not found
     <footer>
         <div class="container text-center">
             <p class="mb-1">&copy; <?php echo date('Y'); ?> ডিজিটাল নিকাহনামা রেজিস্ট্রি সিস্টেম। সর্বস্বত্ব সংরক্ষিত।</p>
-            <p class="small text-muted mb-0">সিস্টেম সংস্করণ ২.০.০ | Firebase ক্লাউড দ্বারা চালিত</p>
+            <p class="small text-muted mb-0">সিস্টেম সংস্করণ ২.০.০</p>
         </div>
     </footer>
 
