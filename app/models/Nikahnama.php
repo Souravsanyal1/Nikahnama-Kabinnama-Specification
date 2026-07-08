@@ -388,4 +388,198 @@ class Nikahnama {
         });
         return array_slice($docs, 0, $limit);
     }
+
+    /**
+     * Fetch all New Muslim documents from Firestore (capped at 300)
+     */
+    public function getAllNewMuslims() {
+        $res = $this->request('/new_muslims?pageSize=300');
+        $documents = [];
+        if ($res && isset($res['documents'])) {
+            foreach ($res['documents'] as $doc) {
+                $flat = $this->flattenDocument($doc);
+                if ($flat) {
+                    $documents[] = $flat;
+                }
+            }
+        }
+        return $documents;
+    }
+
+    /**
+     * Get New Muslim record by database ID
+     */
+    public function getNewMuslimById($id) {
+        $res = $this->request('/new_muslims/' . $id);
+        if ($res) {
+            return $this->flattenDocument($res);
+        }
+        return null;
+    }
+
+    /**
+     * Get New Muslim record by Certificate Number
+     */
+    public function getNewMuslimByCertNo($certNo) {
+        $docs = $this->getAllNewMuslims();
+        foreach ($docs as $doc) {
+            if (isset($doc['certificate_no']) && strcasecmp(trim($doc['certificate_no']), trim($certNo)) === 0) {
+                return $doc;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Insert a new New Muslim record
+     */
+    public function createNewMuslim($data) {
+        $payload = $this->toFirestorePayload($data);
+        $res = $this->request('/new_muslims', 'POST', $payload);
+        if ($res && isset($res['name'])) {
+            $flat = $this->flattenDocument($res);
+            return $flat['id'] ?? true;
+        }
+        if ($this->lastError) {
+            flash('error_detail', $this->lastError);
+        }
+        return false;
+    }
+
+    /**
+     * Update an existing New Muslim record
+     */
+    public function updateNewMuslim($id, $data) {
+        $payload = $this->toFirestorePayload($data);
+        $queryParams = [];
+        foreach ($data as $key => $val) {
+            $queryParams[] = 'updateMask.fieldPaths=' . urlencode($key);
+        }
+        $queryString = '?' . implode('&', $queryParams);
+        
+        $res = $this->request('/new_muslims/' . $id . $queryString, 'PATCH', $payload);
+        if ($res !== null) {
+            return true;
+        }
+        if ($this->lastError) {
+            flash('error_detail', $this->lastError);
+        }
+        return false;
+    }
+
+    /**
+     * Delete a New Muslim record
+     */
+    public function deleteNewMuslim($id) {
+        $res = $this->request('/new_muslims/' . $id, 'DELETE');
+        return $res !== null;
+    }
+
+    /**
+     * Generate unique Certificate Number for New Muslims
+     */
+    public function generateNewMuslimCertNo() {
+        $prefix = 'NMC-' . date('Ymd') . '-';
+        $today = date('Y-m-d');
+        
+        $docs = $this->getAllNewMuslims();
+        $count = 0;
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 10) === $today) {
+                $count++;
+            }
+        }
+        
+        $next_num = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+        $cert_no = $prefix . $next_num;
+        
+        if ($this->getNewMuslimByCertNo($cert_no) !== null) {
+            $cert_no = $prefix . str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
+        }
+        
+        return $cert_no;
+    }
+
+    /**
+     * Search New Muslims with query
+     */
+    public function searchNewMuslims($query_str) {
+        $docs = $this->getAllNewMuslims();
+        if (empty($query_str)) {
+            usort($docs, function($a, $b) {
+                return strcmp($b['created_at'], $a['created_at']);
+            });
+            return array_slice($docs, 0, 50);
+        }
+
+        $results = [];
+        $query_str = strtolower(trim($query_str));
+        
+        foreach ($docs as $doc) {
+            $match = false;
+            foreach (['certificate_no', 'previous_name', 'new_name', 'nid_no', 'phone_no', 'declaration_date', 'imam_name', 'institution_name'] as $field) {
+                if (isset($doc[$field]) && stripos(strtolower($doc[$field]), $query_str) !== false) {
+                    $match = true;
+                    break;
+                }
+            }
+            if ($match) {
+                $results[] = $doc;
+            }
+        }
+        
+        usort($results, function($a, $b) {
+            return strcmp($b['created_at'], $a['created_at']);
+        });
+        
+        return $results;
+    }
+
+    /**
+     * Count Total New Muslims
+     */
+    public function countAllNewMuslims() {
+        return count($this->getAllNewMuslims());
+    }
+
+    /**
+     * Count New Muslims registered today
+     */
+    public function countNewMuslimsToday() {
+        $docs = $this->getAllNewMuslims();
+        $count = 0;
+        $today = date('Y-m-d');
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 10) === $today) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * Count New Muslims registered this month
+     */
+    public function countNewMuslimsThisMonth() {
+        $docs = $this->getAllNewMuslims();
+        $count = 0;
+        $month = date('Y-m');
+        foreach ($docs as $doc) {
+            if (isset($doc['created_at']) && substr($doc['created_at'], 0, 7) === $month) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * Get Recent New Muslims
+     */
+    public function getRecentNewMuslims($limit = 5) {
+        $docs = $this->getAllNewMuslims();
+        usort($docs, function($a, $b) {
+            return strcmp($b['created_at'], $a['created_at']);
+        });
+        return array_slice($docs, 0, $limit);
+    }
 }

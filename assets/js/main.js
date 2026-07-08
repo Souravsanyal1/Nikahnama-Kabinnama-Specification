@@ -108,6 +108,55 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 2.2. Real-time Search Handler for New Muslims on Dashboard
+    const newMuslimSearchInput = document.getElementById('newMuslimSearch');
+    const newMuslimSearchResults = document.getElementById('newMuslimSearchResultsTable');
+
+    if (newMuslimSearchInput && newMuslimSearchResults) {
+        let timeout = null;
+        newMuslimSearchInput.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const query = this.value.trim();
+
+            timeout = setTimeout(function () {
+                fetch('dashboard.php?action=search_new_muslim&q=' + encodeURIComponent(query))
+                    .then(response => response.json())
+                    .then(data => {
+                        let html = '';
+                        if (data.length === 0) {
+                            html = `<tr><td colspan="7" class="text-center py-4 text-muted">আপনার অনুসন্ধানের সাথে মেলে এমন কোনো রেকর্ড পাওয়া যায়নি।</td></tr>`;
+                        } else {
+                            data.forEach(item => {
+                                html += `
+                                <tr>
+                                    <td><strong class="text-success">${item.certificate_no}</strong></td>
+                                    <td><strong class="text-dark">${item.new_name}</strong></td>
+                                    <td>
+                                        <span class="text-danger">${item.previous_name}</span><br>
+                                        <span class="small text-muted">(${item.previous_religion})</span>
+                                    </td>
+                                    <td>${item.declaration_date}</td>
+                                    <td>${item.phone_no}</td>
+                                    <td>${item.imam_name}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="view_new_muslim.php?id=${item.id}" class="btn btn-sm btn-outline-secondary">দেখুন</a>
+                                            <a href="edit_new_muslim.php?id=${item.id}" class="btn btn-sm btn-outline-warning">সম্পাদনা</a>
+                                            <a href="print_new_muslim.php?id=${item.id}&type=certificate" target="_blank" class="btn btn-sm btn-outline-primary">সনদ</a>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            });
+                        }
+                        newMuslimSearchResults.innerHTML = html;
+                    })
+                    .catch(err => {
+                        console.error('Error fetching search results:', err);
+                    });
+            }, 300);
+        });
+    }
+
     // 3. Simple Dynamic Alert Toast System
     function showToast(message, type = 'info') {
         let container = document.getElementById('toastContainer');

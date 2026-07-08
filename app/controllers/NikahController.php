@@ -235,4 +235,190 @@ class NikahController {
         $d = DateTime::createFromFormat($format, $date);
         return $d && $d->format($format) === $date;
     }
+
+    /**
+     * View a single new muslim certificate by ID
+     */
+    public function showNewMuslim($id) {
+        $cert = $this->model->getNewMuslimById($id);
+        if (!$cert) {
+            flash('error', 'নওমুসলিম রেকর্ড পাওয়া যায়নি।');
+            header("Location: dashboard.php");
+            exit;
+        }
+        return $cert;
+    }
+
+    /**
+     * Process creation form submission for New Muslim
+     */
+    public function handleCreateNewMuslim() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return;
+        }
+
+        // Validate CSRF
+        if (!isset($_POST['csrf_token']) || !validate_csrf($_POST['csrf_token'])) {
+            flash('error', 'CSRF ভেরিফিকেশন ব্যর্থ হয়েছে।');
+            return;
+        }
+
+        // Clean & sanitize input
+        $data = sanitize($_POST);
+
+        // Validation Errors collector
+        $errors = $this->validateNewMuslimFormData($data);
+
+        if (!empty($errors)) {
+            $_SESSION['form_errors'] = $errors;
+            $_SESSION['form_data'] = $_POST; // Preserve input
+            flash('error', 'অনুগ্রহ করে লাল চিহ্নিত ত্রুটিগুলো সংশোধন করুন।');
+            return;
+        }
+
+        // Generate Certificate Number
+        $data['certificate_no'] = $this->model->generateNewMuslimCertNo();
+
+        // Create verification QR code content
+        $host = $_SERVER['HTTP_HOST'];
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        // Verification url
+        $verify_url = $protocol . "://" . $host . dirname($_SERVER['PHP_SELF']) . "/verify_new_muslim.php?cert_no=" . $data['certificate_no'];
+        $data['qr_code'] = $verify_url;
+
+        // Save
+        $insert_id = $this->model->createNewMuslim($data);
+
+        if ($insert_id) {
+            flash('success', 'নওমুসলিম রেকর্ড সফলভাবে নিবন্ধিত হয়েছে।');
+            // Clean dynamic form states
+            unset($_SESSION['form_errors']);
+            unset($_SESSION['form_data']);
+            header("Location: view_new_muslim.php?id=" . $insert_id);
+            exit;
+        } else {
+            $detail = flash('error_detail');
+            $msg = 'নওমুসলিম রেকর্ড নিবন্ধন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+            if ($detail) {
+                $msg .= ' কারণ: ' . $detail;
+            }
+            flash('error', $msg);
+        }
+    }
+
+    /**
+     * Process edit form submission for New Muslim
+     */
+    public function handleEditNewMuslim($id) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return;
+        }
+
+        // Validate CSRF
+        if (!isset($_POST['csrf_token']) || !validate_csrf($_POST['csrf_token'])) {
+            flash('error', 'CSRF ভেরিফিকেশন ব্যর্থ হয়েছে।');
+            return;
+        }
+
+        // Clean & sanitize
+        $data = sanitize($_POST);
+
+        // Validate
+        $errors = $this->validateNewMuslimFormData($data);
+
+        if (!empty($errors)) {
+            $_SESSION['form_errors'] = $errors;
+            flash('error', 'অনুগ্রহ করে লাল চিহ্নিত ত্রুটিগুলো সংশোধন করুন।');
+            return;
+        }
+
+        // Update
+        $success = $this->model->updateNewMuslim($id, $data);
+
+        if ($success) {
+            flash('success', 'নওমুসলিম রেকর্ড সফলভাবে আপডেট করা হয়েছে।');
+            unset($_SESSION['form_errors']);
+            header("Location: view_new_muslim.php?id=" . $id);
+            exit;
+        } else {
+            $detail = flash('error_detail');
+            $msg = 'নওমুসলিম রেকর্ড আপডেট করতে ব্যর্থ হয়েছে।';
+            if ($detail) {
+                $msg .= ' কারণ: ' . $detail;
+            }
+            flash('error', $msg);
+        }
+    }
+
+    /**
+     * Handle deletion of new muslim certificate
+     */
+    public function handleDeleteNewMuslim($id) {
+        require_admin(); // Only admins can delete
+
+        if ($this->model->deleteNewMuslim($id)) {
+            flash('success', 'নওমুসলিম রেকর্ড সফলভাবে মুছে ফেলা হয়েছে।');
+        } else {
+            flash('error', 'নওমুসলিম রেকর্ড মুছতে ব্যর্থ হয়েছে।');
+        }
+        header("Location: dashboard.php");
+        exit;
+    }
+
+    /**
+     * Perform global search for new muslims
+     */
+    public function handleNewMuslimSearch($query) {
+        return $this->model->searchNewMuslims(trim($query));
+    }
+
+    /**
+     * Public verification logic for new muslims
+     */
+    public function handleNewMuslimVerify($certNo) {
+        return $this->model->getNewMuslimByCertNo(trim($certNo));
+    }
+
+    /**
+     * New Muslim validation
+     */
+    private function validateNewMuslimFormData($data) {
+        $errors = [];
+
+        // Required field validations
+        $required = [
+            'previous_name' => 'পূর্বের নাম প্রদান করা আবশ্যক।',
+            'previous_religion' => 'পূর্বের ধর্ম প্রদান করা আবশ্যক।',
+            'new_name' => 'নতুন ইসলামী নাম প্রদান করা আবশ্যক।',
+            'father_name' => 'পিতার নাম প্রদান করা আবশ্যক।',
+            'mother_name' => 'মাতার নাম প্রদান করা আবশ্যক।',
+            'date_of_birth' => 'জন্ম তারিখ প্রদান করা আবশ্যক।',
+            'phone_no' => 'মোবাইল নম্বর প্রদান করা আবশ্যক।',
+            'address' => 'পূর্ণ ঠিকানা প্রদান করা আবশ্যক।',
+            'declaration_date' => 'ইসলাম গ্রহণের তারিখ প্রদান করা আবশ্যক।',
+            'imam_name' => 'ইমাম/আলেমের নাম প্রদান করা আবশ্যক।',
+            'imam_title' => 'ইমামের পদবী প্রদান করা আবশ্যক।',
+            'institution_name' => 'প্রতিষ্ঠানের নাম প্রদান করা আবশ্যক।',
+            'witness1_name' => '১ম সাক্ষীর নাম প্রদান করা আবশ্যক।',
+            'witness1_nid' => '১ম সাক্ষীর NID নম্বর প্রদান করা আবশ্যক।',
+            'witness2_name' => '২য় সাক্ষীর নাম প্রদান করা আবশ্যক।',
+            'witness2_nid' => '২য় সাক্ষীর NID নম্বর প্রদান করা আবশ্যক।',
+        ];
+
+        foreach ($required as $field => $msg) {
+            if (empty($data[$field])) {
+                $errors[$field] = $msg;
+            }
+        }
+
+        // Validate dates
+        if (!empty($data['declaration_date']) && !$this->isValidDate($data['declaration_date'])) {
+            $errors['declaration_date'] = 'অকার্যকর ইসলাম গ্রহণের তারিখ বিন্যাস।';
+        }
+        if (!empty($data['date_of_birth']) && !$this->isValidDate($data['date_of_birth'])) {
+            $errors['date_of_birth'] = 'অকার্যকর জন্ম তারিখ বিন্যাস।';
+        }
+
+        return $errors;
+    }
 }
