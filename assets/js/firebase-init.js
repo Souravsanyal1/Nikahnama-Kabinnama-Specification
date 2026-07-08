@@ -8,6 +8,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBwIqGjfaGpdccxg2AyhpmLXDG6A9oC_yI",
   authDomain: "nikahnama-181b3.firebaseapp.com",
+  databaseURL: "https://nikahnama-181b3-default-rtdb.firebaseio.com",
   projectId: "nikahnama-181b3",
   storageBucket: "nikahnama-181b3.firebasestorage.app",
   messagingSenderId: "144089904412",
