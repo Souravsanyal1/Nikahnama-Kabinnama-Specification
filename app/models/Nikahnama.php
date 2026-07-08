@@ -4,12 +4,17 @@
 class Nikahnama {
     private $projectId = 'nikahnama-181b3';
     private $baseUrl;
+    private $lastError = null;
 
     public function __construct() {
         $this->baseUrl = "https://firestore.googleapis.com/v1/projects/" . $this->projectId . "/databases/(default)/documents";
         
         // Auto-seed default users if they are not in the cloud yet
         $this->seedUsersIfEmpty();
+    }
+
+    public function getLastError() {
+        return $this->lastError;
     }
 
     /**
@@ -34,9 +39,21 @@ class Nikahnama {
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
         curl_close($ch);
         
+        if ($curlErr) {
+            $this->lastError = "Connection error: " . $curlErr;
+            return null;
+        }
+        
         if ($httpCode >= 400) {
+            $res = json_decode($response, true);
+            if (isset($res['error']['message'])) {
+                $this->lastError = "Firebase Error (" . $httpCode . "): " . $res['error']['message'];
+            } else {
+                $this->lastError = "Firebase Error (" . $httpCode . "): " . $response;
+            }
             return null;
         }
         
@@ -211,6 +228,9 @@ class Nikahnama {
             $flat = $this->flattenDocument($res);
             return $flat['id'] ?? true;
         }
+        if ($this->lastError) {
+            flash('error_detail', $this->lastError);
+        }
         return false;
     }
 
@@ -228,7 +248,13 @@ class Nikahnama {
         $queryString = '?' . implode('&', $queryParams);
         
         $res = $this->request('/nikahnama/' . $id . $queryString, 'PATCH', $payload);
-        return $res !== null;
+        if ($res !== null) {
+            return true;
+        }
+        if ($this->lastError) {
+            flash('error_detail', $this->lastError);
+        }
+        return false;
     }
 
     /**

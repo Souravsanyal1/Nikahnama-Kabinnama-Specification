@@ -85,7 +85,12 @@ class NikahController {
             header("Location: view.php?id=" . $insert_id);
             exit;
         } else {
-            flash('error', 'Failed to register Certificate. Please try again.');
+            $detail = flash('error_detail');
+            $msg = 'Failed to register Certificate. Please try again.';
+            if ($detail) {
+                $msg .= ' Details: ' . $detail;
+            }
+            flash('error', $msg);
         }
     }
 
@@ -124,7 +129,12 @@ class NikahController {
             header("Location: view.php?id=" . $id);
             exit;
         } else {
-            flash('error', 'Failed to update Certificate.');
+            $detail = flash('error_detail');
+            $msg = 'Failed to update Certificate.';
+            if ($detail) {
+                $msg .= ' Details: ' . $detail;
+            }
+            flash('error', $msg);
         }
     }
 
