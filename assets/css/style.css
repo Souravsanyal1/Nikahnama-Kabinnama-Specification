@@ -1,0 +1,290 @@
+/* assets/css/style.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary-color: #FF8A00;
+    --primary-dark: #E07A00;
+    --primary-light: rgba(255, 138, 0, 0.1);
+    --dark-bg: #121212;
+    --dark-card: #1E1E1E;
+    --light-bg: #F8F8F8;
+    --light-card: #FFFFFF;
+    --text-dark: #212529;
+    --text-muted: #6C757D;
+    --gold: #D4AF37;
+    --emerald-green: #0F5132;
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+}
+
+/* Navbar Customization */
+.navbar-custom {
+    background-color: var(--dark-bg);
+    padding: 15px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.navbar-custom .navbar-brand {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    color: #FFFFFF;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+}
+
+.navbar-custom .navbar-brand span {
+    color: var(--primary-color);
+}
+
+.navbar-custom .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.navbar-custom .nav-link:hover, 
+.navbar-custom .nav-link.active {
+    color: #FFFFFF;
+    background-color: rgba(255, 138, 0, 0.15);
+}
+
+/* Dashboard Statistics Cards */
+.stat-card {
+    background: var(--light-card);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    transition: var(--transition);
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(255, 138, 0, 0.12);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--primary-color);
+}
+
+.stat-card .icon-wrapper {
+    width: 50px;
+    height: 50px;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-val {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 10px;
+}
+
+/* Premium Buttons */
+.btn-primary-custom {
+    background-color: var(--primary-color);
+    border: none;
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.btn-primary-custom:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(255, 138, 0, 0.3);
+}
+
+.btn-outline-custom {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 8px 22px;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.btn-outline-custom:hover {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* Forms Styling */
+.form-card {
+    background: var(--light-card);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.form-section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+}
+
+.form-control, .form-select {
+    padding: 11px 15px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: #4A5568;
+    margin-bottom: 6px;
+}
+
+/* Custom Tabs for Multi-Step Form */
+.form-tabs .nav-link {
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-right: 8px;
+    transition: var(--transition);
+}
+
+.form-tabs .nav-link.active {
+    background-color: var(--primary-color) !important;
+    color: #FFFFFF !important;
+}
+
+/* Login Page Styling */
+.login-container {
+    max-width: 450px;
+    margin: 80px auto;
+}
+
+.login-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    overflow: hidden;
+    background: var(--light-card);
+}
+
+.login-header {
+    background: var(--dark-bg);
+    color: #FFFFFF;
+    padding: 35px 20px;
+    text-align: center;
+}
+
+.login-header h2 {
+    font-weight: 800;
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+}
+
+.login-header h2 span {
+    color: var(--primary-color);
+}
+
+/* Verification Search Panel */
+.search-card {
+    border: none;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, var(--dark-bg) 0%, #2D3748 100%);
+    color: #FFFFFF;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* Table Style */
+.table-custom {
+    background: var(--light-card);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.table-custom th {
+    background-color: #F1F5F9;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 16px;
+}
+
+.table-custom td {
+    padding: 16px;
+    vertical-align: middle;
+}
+
+.badge-paid {
+    background-color: #D1E7DD;
+    color: #0F5132;
+}
+
+.badge-due {
+    background-color: #F8D7DA;
+    color: #842029;
+}
+
+.badge-partial {
+    background-color: #FFF3CD;
+    color: #664D03;
+}
+
+/* Footer style */
+footer {
+    background-color: var(--dark-bg);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 20px 0;
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

@@ -1,0 +1,289 @@
+/* assets/css/print.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Montserrat:wght@400;600;700&display=swap');
+
+:root {
+    --gold: #C5A059;
+    --emerald-green: #07472A;
+    --text-dark: #1A1A1A;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 12mm;
+}
+
+@media print {
+    body {
+        background: #FFFFFF !important;
+        color: var(--text-dark) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    .certificate-wrapper {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Screen Preview Styling */
+.certificate-preview-body {
+    background-color: #525659;
+    padding: 40px 0;
+}
+
+.certificate-wrapper {
+    background: #FFFFFF;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 12mm;
+    position: relative;
+    box-sizing: border-box;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+}
+
+/* Double Border - Islamic Government style */
+.certificate-border {
+    border: 4px double var(--gold);
+    padding: 5px;
+    height: 100%;
+    min-height: calc(297mm - 24mm - 10px);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.certificate-inner-border {
+    border: 2px solid var(--emerald-green);
+    padding: 20px;
+    height: 100%;
+    min-height: calc(297mm - 24mm - 24px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Islamic Watermark */
+.certificate-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 320px;
+    opacity: 0.055;
+    pointer-events: none;
+    z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%2307472A' d='M50 0 L65 35 L100 50 L65 65 L50 100 L35 65 L0 50 L35 35 Z M50 15 L59 41 L85 50 L59 59 L50 85 L41 59 L15 50 L41 41 Z'/></svg>");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Header Elements */
+.cert-header {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 15px;
+}
+
+.bismillah {
+    font-family: 'Amiri', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--emerald-green);
+    margin-bottom: 5px;
+    direction: rtl;
+}
+
+.govt-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-dark);
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.cert-title-bn {
+    font-family: 'Amiri', 'Inter', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: var(--emerald-green);
+    margin: 5px 0 0 0;
+}
+
+.cert-title-en {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+}
+
+/* Meta details row (Certificate No, Reg No, Issue Date) */
+.cert-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333333;
+    z-index: 2;
+    position: relative;
+}
+
+.cert-meta-item span {
+    color: var(--emerald-green);
+    font-weight: 700;
+}
+
+/* Form Grid Layouts */
+.cert-section {
+    z-index: 2;
+    position: relative;
+    margin-bottom: 18px;
+}
+
+.section-divider {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    background-color: var(--emerald-green);
+    padding: 4px 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    border-left: 5px solid var(--gold);
+}
+
+.cert-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 30px;
+    row-gap: 8px;
+    font-size: 0.85rem;
+}
+
+.cert-field {
+    display: flex;
+    margin-bottom: 4px;
+    line-height: 1.4;
+    border-bottom: 1px dotted #D1D5DB;
+    padding-bottom: 2px;
+}
+
+.cert-field-label {
+    font-weight: 700;
+    color: #4B5563;
+    min-width: 140px;
+    max-width: 140px;
+}
+
+.cert-field-value {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Mahr Box */
+.mahr-box {
+    border: 1px solid var(--gold);
+    background-color: rgba(197, 160, 89, 0.05);
+    border-radius: 4px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+}
+
+.mahr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    font-size: 0.85rem;
+}
+
+/* Signatures area */
+.signature-section {
+    margin-top: auto;
+    z-index: 2;
+    position: relative;
+    padding-top: 30px;
+}
+
+.signature-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+.sig-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #4B5563;
+}
+
+.sig-line {
+    border-top: 1px solid #9CA3AF;
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+/* Footer elements */
+.cert-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 25px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 15px;
+    z-index: 2;
+    position: relative;
+}
+
+.cert-qr {
+    width: 80px;
+    height: 80px;
+    border: 1px solid #E5E7EB;
+    padding: 3px;
+    background-color: #FFFFFF;
+}
+
+.cert-qr img {
+    width: 100%;
+    height: 100%;
+}
+
+.cert-footer-text {
+    font-size: 0.68rem;
+    color: #6B7280;
+    text-align: right;
+    line-height: 1.5;
+}
+
+.cert-footer-text a {
+    color: var(--emerald-green);
+    text-decoration: none;
+    font-weight: 600;
+}
