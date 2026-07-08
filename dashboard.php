@@ -31,12 +31,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'search_new_muslim') {
 $stats = $controller->getDashboardStats();
 
 // Fetch New Muslim statistics and recent data
-$nm_stats = [
-    'total' => $controller->model->countAllNewMuslims(),
-    'today' => $controller->model->countNewMuslimsToday(),
-    'month' => $controller->model->countNewMuslimsThisMonth(),
-    'recent' => $controller->model->getRecentNewMuslims(5)
-];
+$nm_stats = $controller->getNewMuslimDashboardStats();
 ?>
 <!DOCTYPE html>
 <html lang="bn">

@@ -24,6 +24,18 @@ class NikahController {
     }
 
     /**
+     * Get statistics for new muslim dashboard
+     */
+    public function getNewMuslimDashboardStats() {
+        return [
+            'total' => $this->model->countAllNewMuslims(),
+            'today' => $this->model->countNewMuslimsToday(),
+            'month' => $this->model->countNewMuslimsThisMonth(),
+            'recent' => $this->model->getRecentNewMuslims(5)
+        ];
+    }
+
+    /**
      * View a single certificate by ID
      */
     public function show($id) {
