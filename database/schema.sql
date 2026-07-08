@@ -73,4 +73,4 @@ CREATE TABLE `nikahnama` (
 -- Seed default admin user (username: admin, password: admin123)
 INSERT INTO `users` (`username`, `password`, `fullname`, `role`) VALUES
 ('admin', '$2y$10$IriuGDloH/z1dmimyy0xV.sBsM/7I7JMI1d2ZlOI.7/1fsjo11aJW', 'Administrator', 'admin'),
-('sourav.sanya.dev@gmail.com', '$2y$10$jHUm2r89uS8tc.EL.ICeKOKGAHNxevQzkfmkBoPCZ1wsYtQg/v4py', 'Sourav Dev', 'admin');
+('sourav.sanyal.dev@gmail.com', '$2y$10$jHUm2r89uS8tc.EL.ICeKOKGAHNxevQzkfmkBoPCZ1wsYtQg/v4py', 'Sourav Dev', 'admin');

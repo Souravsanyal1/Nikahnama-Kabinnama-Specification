@@ -113,7 +113,7 @@ class Nikahnama {
                     'role' => 'admin'
                 ],
                 [
-                    'username' => 'sourav.sanya.dev@gmail.com',
+                    'username' => 'sourav.sanyal.dev@gmail.com',
                     'password' => '$2y$10$jHUm2r89uS8tc.EL.ICeKOKGAHNxevQzkfmkBoPCZ1wsYtQg/v4py',
                     'fullname' => 'Sourav Dev',
                     'role' => 'admin'
