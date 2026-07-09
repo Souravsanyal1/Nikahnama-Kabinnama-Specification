@@ -11,6 +11,50 @@ $uri = explode('?', $uri)[0];
 // Handle clean URLs if necessary
 $file = ltrim($uri, '/');
 
+// Diagnostic endpoint
+if ($file === 'debug') {
+    header('Content-Type: text/plain');
+    echo "Current working directory: " . getcwd() . "\n";
+    echo "Directory of this script: " . __DIR__ . "\n";
+    echo "Parent directory: " . dirname(__DIR__) . "\n";
+    echo "Parent directory files:\n";
+    print_r(scandir(dirname(__DIR__)));
+    echo "App directory files:\n";
+    if (file_exists(dirname(__DIR__) . '/app')) {
+        print_r(scandir(dirname(__DIR__) . '/app'));
+    } else {
+        echo "App directory does not exist!\n";
+    }
+    exit;
+}
+
+// Static file fallback server
+if (file_exists($file) && !is_dir($file)) {
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $mimes = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'svg' => 'image/svg+xml',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'ico' => 'image/x-icon',
+        'json' => 'application/json',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'otf' => 'font/otf'
+    ];
+    
+    if (isset($mimes[$ext])) {
+        header('Content-Type: ' . $mimes[$ext]);
+        header('Cache-Control: public, max-age=3600');
+        readfile($file);
+        exit;
+    }
+}
+
 if ($file === '' || $file === '/') {
     $file = 'index.php';
 }
@@ -32,5 +76,5 @@ if (file_exists($file) && pathinfo($file, PATHINFO_EXTENSION) === 'php' && strpo
     require $file;
 } else {
     http_response_code(404);
-    echo "404 Not Found";
+    echo "404 Not Found (Request file: " . htmlspecialchars($file) . ")";
 }
