@@ -636,15 +636,30 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
                         
                         <div class="mb-3">
                             <label for="current_password" class="form-label fw-bold text-dark">বর্তমান পাসওয়ার্ড</label>
-                            <input type="password" class="form-control py-2" id="current_password" name="current_password" required placeholder="বর্তমান পাসওয়ার্ডটি লিখুন">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="current_password" name="current_password" required placeholder="বর্তমান পাসওয়ার্ডটি লিখুন">
+                                <button class="btn btn-outline-secondary toggle-pass" type="button" data-target="current_password" style="border-color: #ced4da;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="new_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড</label>
-                            <input type="password" class="form-control py-2" id="new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                                <button class="btn btn-outline-secondary toggle-pass" type="button" data-target="new_password" style="border-color: #ced4da;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
-                            <input type="password" class="form-control py-2" id="confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                                <button class="btn btn-outline-secondary toggle-pass" type="button" data-target="confirm_password" style="border-color: #ced4da;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-3 bg-light">
@@ -671,11 +686,21 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
                         
                         <div class="mb-3">
                             <label for="admin_new_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড</label>
-                            <input type="password" class="form-control py-2" id="admin_new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="admin_new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                                <button class="btn btn-outline-secondary toggle-pass" type="button" data-target="admin_new_password" style="border-color: #ced4da;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="admin_confirm_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
-                            <input type="password" class="form-control py-2" id="admin_confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="admin_confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                                <button class="btn btn-outline-secondary toggle-pass" type="button" data-target="admin_confirm_password" style="border-color: #ced4da;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-3 bg-light">
@@ -703,6 +728,24 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
                     userIdInput.value = userId;
                 });
             }
+
+            // Password show/hide toggle for all input groups
+            document.querySelectorAll('.toggle-pass').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
         });
     </script>
 
