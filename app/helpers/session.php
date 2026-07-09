@@ -1,6 +1,11 @@
 <?php
 // app/helpers/session.php
 
+// Start output buffering to prevent "headers already sent" during shutdown session write
+if (ob_get_level() === 0) {
+    ob_start();
+}
+
 define('SESSION_COOKIE_NAME', 'NIKAH_SESS');
 define('SESSION_SECRET_KEY', 'AIzaSyBwIqGjfaGpdccxg2AyhpmLXDG6A9oC_yI_SEC_SESS_KEY');
 
@@ -45,7 +50,9 @@ function write_custom_session() {
         if (isset($_COOKIE[SESSION_COOKIE_NAME])) {
             // Set cookie parameters safely for Vercel
             $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-            setcookie(SESSION_COOKIE_NAME, '', time() - 3600, '/', '', $secure, true);
+            if (!headers_sent()) {
+                setcookie(SESSION_COOKIE_NAME, '', time() - 3600, '/', '', $secure, true);
+            }
         }
         return;
     }
@@ -56,7 +63,11 @@ function write_custom_session() {
     
     // Set cookie for 1 day, secure on HTTPS
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-    setcookie(SESSION_COOKIE_NAME, $cookie_val, time() + 86400, '/', '', $secure, true);
+    
+    // Check if headers have been sent before setting cookie
+    if (!headers_sent()) {
+        setcookie(SESSION_COOKIE_NAME, $cookie_val, time() + 86400, '/', '', $secure, true);
+    }
 }
 
 // Start custom stateless session immediately
@@ -73,6 +84,7 @@ function login_user($user_id, $username, $fullname, $role) {
     $_SESSION['role'] = $role;
     $_SESSION['last_activity'] = time();
     $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    write_custom_session();
 }
 
 /**
@@ -94,6 +106,7 @@ function is_logged_in() {
         }
         
         $_SESSION['last_activity'] = time();
+        write_custom_session();
         return true;
     }
     return false;
@@ -129,7 +142,9 @@ function logout_user() {
     global $_SESSION;
     $_SESSION = [];
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-    setcookie(SESSION_COOKIE_NAME, '', time() - 3600, '/', '', $secure, true);
+    if (!headers_sent()) {
+        setcookie(SESSION_COOKIE_NAME, '', time() - 3600, '/', '', $secure, true);
+    }
 }
 
 /**
@@ -139,6 +154,7 @@ function csrf_token() {
     global $_SESSION;
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        write_custom_session();
     }
     return $_SESSION['csrf_token'];
 }
@@ -175,9 +191,11 @@ function flash($name, $message = '') {
     if (!empty($name)) {
         if (!empty($message)) {
             $_SESSION['flash_' . $name] = $message;
+            write_custom_session();
         } elseif (isset($_SESSION['flash_' . $name])) {
             $msg = $_SESSION['flash_' . $name];
             unset($_SESSION['flash_' . $name]);
+            write_custom_session();
             return $msg;
         }
     }
