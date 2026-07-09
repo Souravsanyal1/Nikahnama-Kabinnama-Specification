@@ -3,10 +3,14 @@
   "functions": {
     "api/*.php": {
       "runtime": "vercel-php@0.9.0",
-      "includeFiles": "**/*"
+      "includeFiles": "{assets/**,app/**,**/*.php}"
     }
   },
   "rewrites": [
+    {
+      "source": "/assets/:path*",
+      "destination": "/assets/:path*"
+    },
     {
       "source": "/((?!assets/).*)",
       "destination": "/api/index.php"
