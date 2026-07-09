@@ -471,6 +471,88 @@ class NikahController {
     }
 
     /**
+     * Change logged-in user's own password
+     */
+    public function handleOwnPasswordChange($currentPass, $newPass, $confirmPass) {
+        $currentPass = trim($currentPass);
+        $newPass = trim($newPass);
+        $confirmPass = trim($confirmPass);
+
+        if (empty($currentPass) || empty($newPass) || empty($confirmPass)) {
+            flash('error', 'সবগুলো ঘর পূরণ করা আবশ্যক।');
+            return false;
+        }
+
+        if ($newPass !== $confirmPass) {
+            flash('error', 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+            return false;
+        }
+
+        if (strlen($newPass) < 6) {
+            flash('error', 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+            return false;
+        }
+
+        // Fetch user from db
+        $user = $this->model->getUserByUsername($_SESSION['username']);
+        if (!$user) {
+            flash('error', 'ব্যবহারকারী পাওয়া যায়নি।');
+            return false;
+        }
+
+        // Verify current password
+        if (!password_verify($currentPass, $user['password'])) {
+            flash('error', 'বর্তমান পাসওয়ার্ডটি সঠিক নয়।');
+            return false;
+        }
+
+        // Hash & Update new password
+        $hashed = password_hash($newPass, PASSWORD_BCRYPT);
+        if ($this->model->updatePassword($user['id'], $hashed)) {
+            flash('success', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।');
+            return true;
+        }
+
+        flash('error', 'পাসওয়ার্ড পরিবর্তন করতে ব্যর্থ হয়েছে।');
+        return false;
+    }
+
+    /**
+     * Admin forces password change for another officer
+     */
+    public function handleAdminPasswordChange($userId, $newPass, $confirmPass) {
+        require_admin();
+        $userId = trim($userId);
+        $newPass = trim($newPass);
+        $confirmPass = trim($confirmPass);
+
+        if (empty($userId) || empty($newPass) || empty($confirmPass)) {
+            flash('error', 'সবগুলো ঘর পূরণ করা আবশ্যক।');
+            return false;
+        }
+
+        if ($newPass !== $confirmPass) {
+            flash('error', 'নতুন পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।');
+            return false;
+        }
+
+        if (strlen($newPass) < 6) {
+            flash('error', 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+            return false;
+        }
+
+        // Hash & Update password
+        $hashed = password_hash($newPass, PASSWORD_BCRYPT);
+        if ($this->model->updatePassword($userId, $hashed)) {
+            flash('success', 'কর্মকর্তার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।');
+            return true;
+        }
+
+        flash('error', 'পাসওয়ার্ড পরিবর্তন করতে ব্যর্থ হয়েছে।');
+        return false;
+    }
+
+    /**
      * Get last database model error
      */
     public function getLastError() {

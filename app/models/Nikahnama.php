@@ -620,6 +620,15 @@ class Nikahnama {
     }
 
     /**
+     * Update user password
+     */
+    public function updatePassword($id, $newPasswordHash) {
+        $payload = $this->toFirestorePayload(['password' => $newPasswordHash]);
+        $res = $this->request('/users/' . $id . '?updateMask.fieldPaths=password', 'PATCH', $payload);
+        return $res !== null;
+    }
+
+    /**
      * Insert a new user record
      */
     public function createUser($data) {

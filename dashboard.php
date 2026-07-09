@@ -9,7 +9,7 @@ require_login();
 
 $controller = new NikahController();
 
-// Process User Approval / Rejection
+// Process User Approval / Rejection / Password Changes
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'approve_user') {
         require_admin();
@@ -25,6 +25,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($userId) {
             $controller->rejectUser($userId);
         }
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'change_own_password') {
+        $controller->handleOwnPasswordChange(
+            $_POST['current_password'] ?? '',
+            $_POST['new_password'] ?? '',
+            $_POST['confirm_password'] ?? ''
+        );
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'admin_change_password') {
+        require_admin();
+        $controller->handleAdminPasswordChange(
+            $_POST['user_id'] ?? '',
+            $_POST['new_password'] ?? '',
+            $_POST['confirm_password'] ?? ''
+        );
     }
 }
 
@@ -132,10 +149,17 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
                             <li><a class="dropdown-item" href="create_new_muslim.php"><i class="fa-solid fa-user-check me-2 text-success"></i>নতুন নওমুসলিম</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item me-3">
-                        <span class="navbar-text text-light opacity-75 ms-2">
-                            <i class="fa-solid fa-user me-1 text-warning"></i> কর্মকর্তা: <?php echo sanitize($_SESSION['fullname']); ?>
-                        </span>
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link dropdown-toggle text-light opacity-90 ms-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-user text-warning me-1"></i> <?php echo sanitize($_SESSION['fullname']); ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changeOwnPasswordModal">
+                                    <i class="fa-solid fa-key me-2 text-warning"></i>পাসওয়ার্ড পরিবর্তন
+                                </button>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a href="logout.php" class="btn btn-sm btn-outline-danger">
@@ -557,6 +581,13 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
                                                 </td>
                                                 <td class="text-end">
                                                     <?php if (strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') !== 0): ?>
+                                                        <button type="button" class="btn btn-sm btn-outline-warning me-1" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#adminChangePasswordModal" 
+                                                                data-user-id="<?php echo $u['id']; ?>" 
+                                                                data-user-name="<?php echo sanitize($u['fullname']); ?>">
+                                                            <i class="fa-solid fa-key me-1"></i>পাসওয়ার্ড
+                                                        </button>
                                                         <form action="dashboard.php" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই কর্মকর্তার অ্যাকাউন্টটি নিষ্ক্রিয়/মুছে ফেলতে চান?');">
                                                             <input type="hidden" name="action" value="reject_user">
                                                             <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
@@ -590,6 +621,90 @@ if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role']
             <p class="small text-muted mb-0">সিস্টেম সংস্করণ ২.০.০</p>
         </div>
     </footer>
+
+    <!-- Modal for changing own password -->
+    <div class="modal fade" id="changeOwnPasswordModal" tabindex="-1" aria-labelledby="changeOwnPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="changeOwnPasswordModalLabel"><i class="fa-solid fa-key me-2 text-warning"></i>পাসওয়ার্ড পরিবর্তন করুন</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="dashboard.php" method="POST">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="action" value="change_own_password">
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label fw-bold text-dark">বর্তমান পাসওয়ার্ড</label>
+                            <input type="password" class="form-control py-2" id="current_password" name="current_password" required placeholder="বর্তমান পাসওয়ার্ডটি লিখুন">
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড</label>
+                            <input type="password" class="form-control py-2" id="new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+                            <input type="password" class="form-control py-2" id="confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light">
+                        <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">বন্ধ করুন</button>
+                        <button type="submit" class="btn btn-primary-custom px-4 py-2">সংরক্ষণ করুন</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for admin changing other user's password -->
+    <div class="modal fade" id="adminChangePasswordModal" tabindex="-1" aria-labelledby="adminChangePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="adminChangePasswordModalLabel"><i class="fa-solid fa-user-shield me-2 text-warning"></i>পাসওয়ার্ড পরিবর্তন</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="dashboard.php" method="POST">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="action" value="admin_change_password">
+                        <input type="hidden" name="user_id" id="admin_change_user_id">
+                        
+                        <div class="mb-3">
+                            <label for="admin_new_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড</label>
+                            <input type="password" class="form-control py-2" id="admin_new_password" name="new_password" required minlength="6" placeholder="কমপক্ষে ৬ অক্ষরের নতুন পাসওয়ার্ড">
+                        </div>
+                        <div class="mb-3">
+                            <label for="admin_confirm_password" class="form-label fw-bold text-dark">নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+                            <input type="password" class="form-control py-2" id="admin_confirm_password" name="confirm_password" required minlength="6" placeholder="নতুন পাসওয়ার্ডটি আবার লিখুন">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light">
+                        <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">বন্ধ করুন</button>
+                        <button type="submit" class="btn btn-primary-custom px-4 py-2">সংরক্ষণ করুন</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminModal = document.getElementById('adminChangePasswordModal');
+            if (adminModal) {
+                adminModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const userId = button.getAttribute('data-user-id');
+                    const userName = button.getAttribute('data-user-name');
+                    
+                    const modalTitle = adminModal.querySelector('.modal-title');
+                    const userIdInput = adminModal.querySelector('#admin_change_user_id');
+                    
+                    modalTitle.innerHTML = '<i class="fa-solid fa-user-shield me-2 text-warning"></i>' + userName + ' - এর পাসওয়ার্ড পরিবর্তন';
+                    userIdInput.value = userId;
+                });
+            }
+        });
+    </script>
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
