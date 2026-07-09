@@ -582,4 +582,38 @@ class Nikahnama {
         });
         return array_slice($docs, 0, $limit);
     }
+
+    /**
+     * Get all users
+     */
+    public function getAllUsers() {
+        $res = $this->request('/users?pageSize=100');
+        $users = [];
+        if ($res && isset($res['documents'])) {
+            foreach ($res['documents'] as $doc) {
+                $flat = $this->flattenDocument($doc);
+                if ($flat) {
+                    $users[] = $flat;
+                }
+            }
+        }
+        return $users;
+    }
+
+    /**
+     * Approve user
+     */
+    public function approveUser($id) {
+        $payload = $this->toFirestorePayload(['approved' => true]);
+        $res = $this->request('/users/' . $id . '?updateMask.fieldPaths=approved', 'PATCH', $payload);
+        return $res !== null;
+    }
+
+    /**
+     * Delete/Reject user
+     */
+    public function deleteUser($id) {
+        $res = $this->request('/users/' . $id, 'DELETE');
+        return $res !== null;
+    }
 }

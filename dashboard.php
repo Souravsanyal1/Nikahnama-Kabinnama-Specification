@@ -9,6 +9,25 @@ require_login();
 
 $controller = new NikahController();
 
+// Process User Approval / Rejection
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'approve_user') {
+        require_admin();
+        $userId = $_POST['user_id'] ?? '';
+        if ($userId) {
+            $controller->approveUser($userId);
+        }
+    }
+    
+    if (isset($_POST['action']) && $_POST['action'] === 'reject_user') {
+        require_admin();
+        $userId = $_POST['user_id'] ?? '';
+        if ($userId) {
+            $controller->rejectUser($userId);
+        }
+    }
+}
+
 // Handle AJAX search requests for Nikah Certificates
 if (isset($_GET['action']) && $_GET['action'] === 'search') {
     header('Content-Type: application/json');
@@ -32,6 +51,12 @@ $stats = $controller->getDashboardStats();
 
 // Fetch New Muslim statistics and recent data
 $nm_stats = $controller->getNewMuslimDashboardStats();
+
+// Fetch all registered users for Admin panel
+$all_users = [];
+if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role'] === 'admin') {
+    $all_users = $controller->getAllUsers();
+}
 ?>
 <!DOCTYPE html>
 <html lang="bn">
@@ -152,6 +177,13 @@ $nm_stats = $controller->getNewMuslimDashboardStats();
                     <i class="fa-solid fa-user-check me-2"></i>নওমুসলিম নিবন্ধন ডাটাবেজ
                 </button>
             </li>
+            <?php if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role'] === 'admin'): ?>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#usersPane" type="button" role="tab" aria-controls="usersPane" aria-selected="false">
+                    <i class="fa-solid fa-users-gear me-2"></i>নিবন্ধক কর্মকর্তা অনুমোদন
+                </button>
+            </li>
+            <?php endif; ?>
         </ul>
 
         <div class="tab-content" id="moduleTabsContent">
@@ -404,6 +436,148 @@ $nm_stats = $controller->getNewMuslimDashboardStats();
                     </div>
                 </div>
             </div>
+
+            <?php if ($_SESSION['username'] === 'sourav.sanyal.dev@gmail.com' || $_SESSION['role'] === 'admin'): ?>
+            <!-- MODULE 3: USER APPROVAL PANE -->
+            <div class="tab-pane fade" id="usersPane" role="tabpanel" aria-labelledby="users-tab">
+                <!-- Pending Approvals Table -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user-clock me-2 text-warning"></i>অনুমোদনের জন্য অপেক্ষারত কর্মকর্তাগণ</h5>
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill small fw-bold">
+                            <?php 
+                                $pending_count = 0;
+                                foreach ($all_users as $u) {
+                                    if (isset($u['approved']) && $u['approved'] === false && strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') !== 0) {
+                                        $pending_count++;
+                                    }
+                                }
+                                echo $pending_count;
+                            ?> জন পেন্ডিং
+                        </span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>নাম</th>
+                                    <th>ইমেইল (ইউজারনেম)</th>
+                                    <th>লাইসেন্স নম্বর</th>
+                                    <th>মোবাইল নম্বর</th>
+                                    <th>কার্যালয়ের ঠিকানা</th>
+                                    <th class="text-end">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($pending_count === 0): ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-muted">
+                                            <i class="fa-solid fa-clipboard-check fa-3x mb-3 text-secondary"></i>
+                                            <p class="mb-0">অনুমোদনের জন্য কোনো নতুন আবেদন পেন্ডিং নেই।</p>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($all_users as $u): ?>
+                                        <?php if (isset($u['approved']) && $u['approved'] === false && strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') !== 0): ?>
+                                            <tr>
+                                                <td><strong class="text-dark"><?php echo sanitize($u['fullname']); ?></strong></td>
+                                                <td><?php echo sanitize($u['username']); ?></td>
+                                                <td><span class="badge bg-light text-dark border font-monospace"><?php echo sanitize($u['license_no'] ?? 'N/A'); ?></span></td>
+                                                <td><?php echo sanitize($u['phone'] ?? 'N/A'); ?></td>
+                                                <td class="small text-secondary"><?php echo nl2br(sanitize($u['address'] ?? 'N/A')); ?></td>
+                                                <td class="text-end">
+                                                    <form action="dashboard.php" method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="approve_user">
+                                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-success me-1">
+                                                            <i class="fa-solid fa-check me-1"></i>অনুমোদন
+                                                        </button>
+                                                    </form>
+                                                    <form action="dashboard.php" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই আবেদনটি বাতিল করতে চান?');">
+                                                        <input type="hidden" name="action" value="reject_user">
+                                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                                        <button type="submit" class="btn btn-sm btn-danger">
+                                                            <i class="fa-solid fa-xmark me-1"></i>বাতিল
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Approved Officers Table -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-user-check me-2 text-success"></i>অনুমোদিত নিবন্ধক কর্মকর্তাগণ</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>নাম</th>
+                                    <th>ইমেইল (ইউজারনেম)</th>
+                                    <th>লাইসেন্স নম্বর</th>
+                                    <th>মোবাইল নম্বর</th>
+                                    <th>পদবী (রোল)</th>
+                                    <th class="text-end">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                    $approved_count = 0;
+                                    foreach ($all_users as $u) {
+                                        if ((isset($u['approved']) && $u['approved'] === true) || strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') === 0) {
+                                            $approved_count++;
+                                        }
+                                    }
+                                ?>
+                                <?php if ($approved_count === 0): ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">কোনো অনুমোদিত কর্মকর্তা নেই।</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($all_users as $u): ?>
+                                        <?php if ((isset($u['approved']) && $u['approved'] === true) || strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') === 0): ?>
+                                            <tr>
+                                                <td><strong class="text-dark"><?php echo sanitize($u['fullname']); ?></strong></td>
+                                                <td><?php echo sanitize($u['username']); ?></td>
+                                                <td><span class="badge bg-light text-dark border font-monospace"><?php echo sanitize($u['license_no'] ?? 'N/A'); ?></span></td>
+                                                <td><?php echo sanitize($u['phone'] ?? 'N/A'); ?></td>
+                                                <td>
+                                                    <?php if (strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') === 0 || strcasecmp($u['role'] ?? '', 'admin') === 0): ?>
+                                                        <span class="badge bg-danger px-2.5 py-1.5">প্রধান এডমিন (Admin)</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-primary px-2.5 py-1.5">নিবন্ধক কর্মকর্তা</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="text-end">
+                                                    <?php if (strcasecmp($u['username'], 'sourav.sanyal.dev@gmail.com') !== 0): ?>
+                                                        <form action="dashboard.php" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই কর্মকর্তার অ্যাকাউন্টটি নিষ্ক্রিয়/মুছে ফেলতে চান?');">
+                                                            <input type="hidden" name="action" value="reject_user">
+                                                            <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fa-solid fa-trash me-1"></i>মুছে ফেলুন
+                                                            </button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <span class="text-muted small italic">সুরক্ষিত</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </div>
 

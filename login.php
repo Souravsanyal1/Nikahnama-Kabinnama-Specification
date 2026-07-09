@@ -51,6 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="mb-0 text-light opacity-75 small">কর্মকর্তা লগইন পোর্টাল</p>
                 </div>
                 <div class="card-body p-4 bg-white">
+                    <?php if (has_flash('success')): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-circle-check me-2"></i><?php echo flash('success'); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($error_msg)): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="fa-solid fa-triangle-exclamation me-2"></i><?php echo $error_msg; ?>
@@ -84,8 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="submit" class="btn btn-primary-custom w-100 py-2.5">
                             <i class="fa-solid fa-right-to-bracket me-2"></i>লগইন করুন
                         </button>
+
+                        <div class="text-center mt-3">
+                            <span class="text-muted small">নতুন কর্মকর্তা? <a href="register.php" class="text-primary fw-bold text-decoration-none">আবেদন করুন (নিবন্ধন)</a></span>
+                        </div>
                         
-                        <div class="text-center mt-4">
+                        <div class="text-center mt-3">
                             <a href="index.php" class="text-muted text-decoration-none small">
                                 <i class="fa-solid fa-arrow-left me-1"></i> প্রধান পাতায় ফিরে যান
                             </a>

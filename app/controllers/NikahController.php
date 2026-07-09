@@ -435,6 +435,42 @@ class NikahController {
     }
 
     /**
+     * Get all users (Admin only)
+     */
+    public function getAllUsers() {
+        require_admin();
+        return $this->model->getAllUsers();
+    }
+
+    /**
+     * Approve user (Admin only)
+     */
+    public function approveUser($userId) {
+        require_admin();
+        if ($this->model->approveUser($userId)) {
+            flash('success', 'ব্যবহারকারী অ্যাকাউন্টটি সফলভাবে অনুমোদন করা হয়েছে।');
+        } else {
+            flash('error', 'ব্যবহারকারী অনুমোদন করতে ব্যর্থ হয়েছে।');
+        }
+        header("Location: dashboard.php");
+        exit;
+    }
+
+    /**
+     * Reject/Delete user (Admin only)
+     */
+    public function rejectUser($userId) {
+        require_admin();
+        if ($this->model->deleteUser($userId)) {
+            flash('success', 'ব্যবহারকারী অ্যাকাউন্টটি বাতিল/মুছে ফেলা হয়েছে।');
+        } else {
+            flash('error', 'ব্যবহারকারী বাতিল করতে ব্যর্থ হয়েছে।');
+        }
+        header("Location: dashboard.php");
+        exit;
+    }
+
+    /**
      * Get last database model error
      */
     public function getLastError() {
