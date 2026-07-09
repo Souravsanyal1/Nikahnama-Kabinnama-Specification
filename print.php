@@ -238,7 +238,7 @@ $cert = $controller->show($id); // This will redirect if not found
                         <div class="mahr-grid">
                             <div>
                                 <strong>দেনমোহরের পরিমাণ:</strong><br>
-                                <?php echo number_format($cert['mahr_amount'], 2) . ' ' . sanitize($cert['currency']); ?>
+                                <?php echo number_format(floatval($cert['mahr_amount']), 2) . ' ' . sanitize($cert['currency']); ?>
                             </div>
                             <div>
                                 <strong>পরিশোধের ধরন:</strong><br>

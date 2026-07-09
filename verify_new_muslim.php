@@ -14,7 +14,12 @@ if (isset($_GET['cert_no']) && !empty($_GET['cert_no'])) {
     $cert_no = trim($_GET['cert_no']);
     $cert = $controller->handleNewMuslimVerify($cert_no);
     if (!$cert) {
-        $error = "প্রদানকৃত সার্টিফিকেট নম্বরটি আমাদের ডাটাবেজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নম্বরটি লিখুন।";
+        $db_err = $controller->getLastError();
+        if ($db_err) {
+            $error = "ডাটাবেজ ত্রুটি: " . $db_err;
+        } else {
+            $error = "প্রদানকৃত সার্টিফিকেট নম্বরটি আমাদের ডাটাবেজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নম্বরটি লিখুন।";
+        }
     }
 }
 ?>

@@ -242,7 +242,7 @@ $cert = $controller->show($id); // Redirects to dashboard if not found
                             <div class="col-md-4">
                                 <div class="p-2">
                                     <span class="fw-bold text-muted d-block">দেনমোহরের পরিমাণ:</span>
-                                    <span class="text-dark fw-bold"><?php echo number_format($cert['mahr_amount'], 2) . ' ' . sanitize($cert['currency']); ?></span>
+                                    <span class="text-dark fw-bold"><?php echo number_format(floatval($cert['mahr_amount']), 2) . ' ' . sanitize($cert['currency']); ?></span>
                                 </div>
                             </div>
                             <div class="col-md-4">

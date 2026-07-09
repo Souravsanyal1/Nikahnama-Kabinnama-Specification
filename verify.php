@@ -10,11 +10,23 @@ $error = null;
 $searched = false;
 
 if (isset($_GET['cert_no']) && !empty($_GET['cert_no'])) {
-    $searched = true;
     $cert_no = trim($_GET['cert_no']);
+    
+    // Redirect if it's a New Muslim certificate
+    if (stripos($cert_no, 'NMC') === 0) {
+        header("Location: verify_new_muslim.php?cert_no=" . urlencode($cert_no));
+        exit;
+    }
+    
+    $searched = true;
     $cert = $controller->handleVerify($cert_no);
     if (!$cert) {
-        $error = "প্রদানকৃত সার্টিফিকেট নম্বরটি আমাদের ডাটাবেজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নম্বরটি লিখুন।";
+        $db_err = $controller->getLastError();
+        if ($db_err) {
+            $error = "ডাটাবেজ ত্রুটি: " . $db_err;
+        } else {
+            $error = "প্রদানকৃত সার্টিফিকেট নম্বরটি আমাদের ডাটাবেজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নম্বরটি লিখুন।";
+        }
     }
 }
 ?>
@@ -127,7 +139,7 @@ if (isset($_GET['cert_no']) && !empty($_GET['cert_no'])) {
                                                 <strong>নিবন্ধন নম্বর:</strong> <?php echo sanitize($cert['registration_no']); ?>
                                             </div>
                                             <div class="col-md-6">
-                                                <strong>দেনমোহরের পরিমাণ:</strong> <?php echo number_format($cert['mahr_amount'], 2) . ' ' . sanitize($cert['currency']); ?>
+                                                 <strong>দেনমোহরের পরিমাণ:</strong> <?php echo number_format(floatval($cert['mahr_amount']), 2) . ' ' . sanitize($cert['currency']); ?>
                                             </div>
                                             <div class="col-md-6">
                                                 <strong>পরিশোধের অবস্থা:</strong> 

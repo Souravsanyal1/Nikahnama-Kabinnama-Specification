@@ -433,4 +433,12 @@ class NikahController {
 
         return $errors;
     }
+
+    /**
+     * Get last database model error
+     */
+    public function getLastError() {
+        return $this->model->getLastError();
+    }
 }
+
