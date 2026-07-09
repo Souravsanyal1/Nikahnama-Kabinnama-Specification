@@ -65,7 +65,9 @@ class AuthController {
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80500) {
+            @curl_close($ch);
+        }
         
         if ($httpCode === 200) {
             $res = json_decode($response, true);
@@ -152,9 +154,8 @@ class AuthController {
             'created_at' => date('c')
         ];
 
-        // Save to Firestore /users collection
-        $payload = $this->model->toFirestorePayload($userData);
-        $res = $this->model->request('/users', 'POST', $payload);
+        // Save to Firestore /users collection using model helper
+        $res = $this->model->createUser($userData);
 
         if ($res && isset($res['name'])) {
             if ($is_admin) {

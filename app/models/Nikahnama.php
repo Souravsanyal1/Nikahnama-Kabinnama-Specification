@@ -40,7 +40,9 @@ class Nikahnama {
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlErr = curl_error($ch);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80500) {
+            @curl_close($ch);
+        }
         
         if ($curlErr) {
             $this->lastError = "Connection error: " . $curlErr;
@@ -615,5 +617,13 @@ class Nikahnama {
     public function deleteUser($id) {
         $res = $this->request('/users/' . $id, 'DELETE');
         return $res !== null;
+    }
+
+    /**
+     * Insert a new user record
+     */
+    public function createUser($data) {
+        $payload = $this->toFirestorePayload($data);
+        return $this->request('/users', 'POST', $payload);
     }
 }
